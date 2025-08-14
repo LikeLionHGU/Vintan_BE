@@ -1,0 +1,13 @@
+package com.vintan.controller.response;
+
+import lombok.*;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserRegisterResponse {
+
+    private int isRegistered;
+}
