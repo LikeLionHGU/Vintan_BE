@@ -3,10 +3,12 @@ package com.vintan.controller;
 import com.vintan.domain.BlindCommunityPost;
 import com.vintan.dto.request.community.CommunityPostRequestDto;
 import com.vintan.dto.response.community.CommunityBlindPostResponseDto;
+import com.vintan.dto.response.community.CommunityDetailResponseDto;
 import com.vintan.dto.response.user.SessionUserDto;
 import com.vintan.service.BlindCommunityPostService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -74,6 +76,19 @@ public class CommunityBlindController {
             return ResponseEntity.ok(new CommunityBlindPostResponseDto(1));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new CommunityBlindPostResponseDto(0));
+        }
+    }
+
+    @GetMapping("/{reviewId}")
+    public ResponseEntity<CommunityDetailResponseDto> getCommunityDetail(
+            @PathVariable Long regionId,
+            @PathVariable Long reviewId) {
+        try {
+            CommunityDetailResponseDto responseDto = blindCommunityPostService.getPost(reviewId);
+
+            return ResponseEntity.ok(responseDto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 
