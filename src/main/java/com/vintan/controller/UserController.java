@@ -1,10 +1,15 @@
 package com.vintan.controller;
 
 import com.vintan.domain.User;
+import com.vintan.dto.SessionUserDto;
+import com.vintan.dto.request.user.UserLoginRequestDto;
 import com.vintan.dto.request.user.UserRegisterRequestDto;
 import com.vintan.dto.response.user.DuplicatedCheckResponseDto;
 import com.vintan.dto.response.user.RegisterResponseDto;
+import com.vintan.dto.response.user.UserLoginResponseDto;
 import com.vintan.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -44,6 +49,23 @@ public class UserController {
             return new DuplicatedCheckResponseDto(1);
         } else {
             return new DuplicatedCheckResponseDto(0);
+        }
+    }
+
+    @PostMapping("/login")
+    public UserLoginResponseDto login(@RequestBody UserLoginRequestDto requestDto, HttpServletRequest request) {
+        try {
+            User user = userRepository.findById(requestDto.getId()).orElseThrow(() -> new IllegalArgumentException("do not exist"));
+            if (!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())) {
+                throw new IllegalArgumentException("wrong password");
+            }
+
+            HttpSession session = request.getSession(true);
+            session.setAttribute("loggedInUser", new SessionUserDto(user));
+
+            return new UserLoginResponseDto(1);
+        } catch (Exception e) {
+            return new UserLoginResponseDto(0);
         }
     }
 }
