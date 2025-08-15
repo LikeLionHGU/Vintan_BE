@@ -78,4 +78,19 @@ public class UserController {
             return new LogoutResponseDto(0);
         }
     }
+
+    @GetMapping("/session")
+    public UserInfoResponseDto getUserInfo(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("loggedInUser") == null) {
+            return new UserInfoResponseDto(0, 0);
+        }
+
+        SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute("loggedInUser");
+
+        int isBusiness = (sessionUserDto.getBusinessNumber() > 0) ? 1 : 0;
+
+        return new UserInfoResponseDto(1, isBusiness);
+    }
 }
