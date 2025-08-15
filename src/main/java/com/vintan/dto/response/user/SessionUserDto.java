@@ -1,4 +1,4 @@
-package com.vintan.dto;
+package com.vintan.dto.response.user;
 
 import com.vintan.domain.User;
 import lombok.Getter;

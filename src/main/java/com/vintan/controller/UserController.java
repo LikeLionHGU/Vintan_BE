@@ -1,12 +1,9 @@
 package com.vintan.controller;
 
 import com.vintan.domain.User;
-import com.vintan.dto.SessionUserDto;
+import com.vintan.dto.response.user.*;
 import com.vintan.dto.request.user.UserLoginRequestDto;
 import com.vintan.dto.request.user.UserRegisterRequestDto;
-import com.vintan.dto.response.user.DuplicatedCheckResponseDto;
-import com.vintan.dto.response.user.RegisterResponseDto;
-import com.vintan.dto.response.user.UserLoginResponseDto;
 import com.vintan.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -66,6 +63,19 @@ public class UserController {
             return new UserLoginResponseDto(1);
         } catch (Exception e) {
             return new UserLoginResponseDto(0);
+        }
+    }
+
+    @PostMapping("logout")
+    public LogoutResponseDto logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        try {
+            if (session != null) {
+                session.invalidate();
+            }
+            return new LogoutResponseDto(1);
+        } catch (Exception e) {
+            return new LogoutResponseDto(0);
         }
     }
 }
