@@ -3,6 +3,9 @@ package com.vintan.service;
 import com.vintan.domain.BlindCommunityPost;
 import com.vintan.domain.User;
 import com.vintan.dto.request.community.CommunityPostRequestDto;
+import com.vintan.dto.response.community.CommunityBlindDetailResponseDto;
+import com.vintan.dto.response.community.CommunityDetailResponseDto;
+import com.vintan.embedded.CategoryRate;
 import com.vintan.repository.BlindCommunityPostRepository;
 import com.vintan.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -62,6 +65,17 @@ public class BlindCommunityPostService {
         }
 
         blindCommunityPostRepository.delete(post);
+    }
+
+    public CommunityDetailResponseDto getPost(Long reviewId) {
+        BlindCommunityPost post = blindCommunityPostRepository.findById(reviewId).orElseThrow(() -> new IllegalArgumentException("No such post"));
+        CategoryRate rate = post.getCategoryRate();
+
+        double totalRate = (double) (rate.getCleanness() + rate.getPeople() + rate.getReach() + rate.getRentFee()) / 4;
+
+        CommunityBlindDetailResponseDto blindDetailDto = new CommunityBlindDetailResponseDto(post);
+
+        return new  CommunityDetailResponseDto(totalRate, blindDetailDto);
     }
 
 }
