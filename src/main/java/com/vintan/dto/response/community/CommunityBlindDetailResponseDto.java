@@ -3,7 +3,6 @@ package com.vintan.dto.response.community;
 import com.vintan.domain.BlindCommunityPost;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.format.DateTimeFormatter;
 
