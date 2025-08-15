@@ -1,12 +1,10 @@
 package com.vintan.controller;
 
 import com.vintan.domain.BlindCommunityPost;
-import com.vintan.domain.User;
 import com.vintan.dto.request.community.CommunityPostRequestDto;
 import com.vintan.dto.response.community.CommunityBlindPostResponseDto;
 import com.vintan.dto.response.user.SessionUserDto;
-import com.vintan.repository.BlindCommunityPostRepository;
-import com.vintan.repository.UserRepository;
+import com.vintan.service.BlindCommunityPostService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/regions/{regionId}/community/blind/reviews")
 public class CommunityBlindController {
 
-    private final BlindCommunityPostRepository blindCommunityPostRepository;
-    private final UserRepository userRepository;
+    private final BlindCommunityPostService blindCommunityPostService;
 
     @PostMapping
     public ResponseEntity<CommunityBlindPostResponseDto> createCommunityPost(
@@ -28,28 +25,14 @@ public class CommunityBlindController {
             @RequestBody CommunityPostRequestDto requestDto,
             HttpServletRequest request) {
 
-        HttpSession session = request.getSession(false);
+        SessionUserDto sessionUser = getSessionUser(request);
 
-        if (session == null || session.getAttribute("loggedInUser") == null) {
+        if (sessionUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new CommunityBlindPostResponseDto(0));
         }
 
         try {
-            SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute("loggedInUser");
-            String userId = sessionUserDto.getId();
-
-            User writer = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("No info for writer"));
-
-            BlindCommunityPost newPost = BlindCommunityPost.builder()
-                    .title(requestDto.getTitle())
-                    .positive(requestDto.getPositive())
-                    .negative(requestDto.getNegative())
-                    .address(requestDto.getAddress())
-                    .categoryRate(requestDto.getCategoryRate())
-                    .regionNo(regionId)
-                    .user(writer)
-                    .build();
-            blindCommunityPostRepository.save(newPost);
+            BlindCommunityPost savedPost = blindCommunityPostService.createPost(requestDto, sessionUser.getId(), regionId);
             return ResponseEntity.ok(new CommunityBlindPostResponseDto(1));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new CommunityBlindPostResponseDto(0));
@@ -62,33 +45,44 @@ public class CommunityBlindController {
             @PathVariable Long reviewId,
             @RequestBody CommunityPostRequestDto requestDto,
             HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-
-        if (session == null || session.getAttribute("loggedInUser") == null) {
+        SessionUserDto sessionUser = getSessionUser(request);
+        if (sessionUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new CommunityBlindPostResponseDto(0));
         }
 
         try {
-            SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute("loggedInUser");
-            String userId = sessionUserDto.getId();
-            User writer = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("No info for writer"));
-
-            BlindCommunityPost oldPost = blindCommunityPostRepository.findById(reviewId).orElseThrow(() -> new IllegalArgumentException("No post"));
-
-            if (!oldPost.getUser().getId().equals(userId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new CommunityBlindPostResponseDto(0));
-            }
-
-            oldPost.setTitle(requestDto.getTitle());
-            oldPost.setPositive(requestDto.getPositive());
-            oldPost.setNegative(requestDto.getNegative());
-            oldPost.setAddress(requestDto.getAddress());
-            oldPost.setCategoryRate(requestDto.getCategoryRate());
-
-            blindCommunityPostRepository.save(oldPost);
+            blindCommunityPostService.updatePost(reviewId, requestDto, sessionUser.getId());
             return ResponseEntity.ok(new CommunityBlindPostResponseDto(1));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new CommunityBlindPostResponseDto(0));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new CommunityBlindPostResponseDto(0));
         }
     }
+
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<CommunityBlindPostResponseDto> deleteCommunityPost(
+            @PathVariable Long regionId,
+            @PathVariable Long reviewId,
+            HttpServletRequest request) {
+        SessionUserDto sessionUser = getSessionUser(request);
+
+        if (sessionUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new CommunityBlindPostResponseDto(0));
+        }
+
+        try {
+            blindCommunityPostService.deletePost(reviewId, sessionUser.getId());
+            return ResponseEntity.ok(new CommunityBlindPostResponseDto(1));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new CommunityBlindPostResponseDto(0));
+        }
+    }
+
+    private SessionUserDto getSessionUser(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            return (SessionUserDto) session.getAttribute("loggedInUser");
+        }
+        return null;
+    }
 }
+
