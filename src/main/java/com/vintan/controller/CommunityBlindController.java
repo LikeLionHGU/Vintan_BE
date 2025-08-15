@@ -2,6 +2,7 @@ package com.vintan.controller;
 
 import com.vintan.domain.BlindCommunityPost;
 import com.vintan.dto.request.community.CommunityPostRequestDto;
+import com.vintan.dto.response.community.CommunityAllReviewResponseDto;
 import com.vintan.dto.response.community.CommunityBlindPostResponseDto;
 import com.vintan.dto.response.community.CommunityDetailResponseDto;
 import com.vintan.dto.response.user.SessionUserDto;
@@ -12,6 +13,7 @@ import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -90,6 +92,13 @@ public class CommunityBlindController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
+    }
+
+    @GetMapping
+    public ResponseEntity<CommunityAllReviewResponseDto> getAllPosts(
+            @PathVariable Long regionId) {
+        CommunityAllReviewResponseDto responseDto = blindCommunityPostService.getAllPost(regionId);
+        return ResponseEntity.ok(responseDto);
     }
 
     private SessionUserDto getSessionUser(HttpServletRequest request) {
