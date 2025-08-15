@@ -55,4 +55,40 @@ public class CommunityBlindController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new CommunityBlindPostResponseDto(0));
         }
     }
+
+    @PatchMapping("/{reviewId}")
+    public ResponseEntity<CommunityBlindPostResponseDto> editCommunityPost(
+            @PathVariable Long regionId,
+            @PathVariable Long reviewId,
+            @RequestBody CommunityPostRequestDto requestDto,
+            HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("loggedInUser") == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new CommunityBlindPostResponseDto(0));
+        }
+
+        try {
+            SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute("loggedInUser");
+            String userId = sessionUserDto.getId();
+            User writer = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("No info for writer"));
+
+            BlindCommunityPost oldPost = blindCommunityPostRepository.findById(reviewId).orElseThrow(() -> new IllegalArgumentException("No post"));
+
+            if (!oldPost.getUser().getId().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new CommunityBlindPostResponseDto(0));
+            }
+
+            oldPost.setTitle(requestDto.getTitle());
+            oldPost.setPositive(requestDto.getPositive());
+            oldPost.setNegative(requestDto.getNegative());
+            oldPost.setAddress(requestDto.getAddress());
+            oldPost.setCategoryRate(requestDto.getCategoryRate());
+
+            blindCommunityPostRepository.save(oldPost);
+            return ResponseEntity.ok(new CommunityBlindPostResponseDto(1));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new CommunityBlindPostResponseDto(0));
+        }
+    }
 }
