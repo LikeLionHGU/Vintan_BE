@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 public class QnaComment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Integer id; // Long으로 해보기
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "postId", nullable = false) // FK → QnaPost.postId
