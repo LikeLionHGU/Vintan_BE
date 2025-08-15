@@ -1,33 +1,39 @@
 package com.vintan.domain;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "User") // DB 테이블명
+@Setter
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class User {
 
-    @Id // @GeneratedValue(strategy = GenerationType.IDENTITY)안쓰는 이유는 사용자가 id를 설정하기 때문.
-    @Column(name = "userid", length = 100)
-    private String userid; // PK, 문자열
+    @Id
+    @Column(name = "user_id")
+    private String id;
 
-    @Column(name = "password", nullable = false, length = 255)
-    private String password; // 비밀번호 (해시 저장 권장)
+    private String name;
+    private String password;
+    private String email;
+    private int businessNumber;
 
-    @Column(name = "email", nullable = false, length = 255, unique = true)
-    private String email; // 이메일 (유니크)
+    @Column(columnDefinition = "int default 0")
+    private int point;
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name; // 이름
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private BlindCommunityPost blindCommunityPost;
 
-    @Column(name = "bussinessNumber", nullable = false)
-    private Integer bussinessNumber; // 사업자 번호 (10자리, 정수형)
-
-    @Column(name = "point")
-    private Integer point; // 포인트 (기본 0)
+    @CreatedDate
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.mm.dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Column(updatable = false)
+    private LocalDateTime regDate;
 }
