@@ -43,3 +43,8 @@ public class QnaComment {
     @Column(name = "text_time", nullable = false, updatable = false)
     private LocalDateTime textTime;
 }
+
+
+
+
+
