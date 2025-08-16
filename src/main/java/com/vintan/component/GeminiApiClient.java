@@ -45,7 +45,6 @@ public class GeminiApiClient {
 
     private String callGeminiApi(String prompt, String errorMessage) {
         String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" + geminiApiKey;
-        // --- ▲▲▲ 이 부분을 수정하세요 ▲▲▲ ---
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
