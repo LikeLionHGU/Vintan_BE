@@ -1,7 +1,6 @@
 package com.vintan.service;
 
-import com.vintan.domain.QnaComment;
-import com.vintan.domain.QnaPost;
+
 import com.vintan.domain.User;
 import com.vintan.dto.request.ask.CreateAskRequestDto;
 import com.vintan.dto.request.ask.CreateCommentRequestDto;
