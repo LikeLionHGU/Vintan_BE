@@ -91,7 +91,7 @@ public class BlindCommunityPostService {
         }
 
         List<BlindSummaryDto> blindSummaries = posts.stream()
-                .map(BlindSummaryDto::new) // .map(post -> new BlindSummaryDto(post))와 동일
+                .map(BlindSummaryDto::new)
                 .collect(Collectors.toList());
 
         double totalRateAvg = posts.stream()
