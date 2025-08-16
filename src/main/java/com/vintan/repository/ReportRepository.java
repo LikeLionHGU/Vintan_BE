@@ -1,9 +1,9 @@
 package com.vintan.repository;
 
-import com.vintan.domain.User;
+import com.vintan.domain.Report;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, String> {
+public interface ReportRepository extends JpaRepository<Report, Long> {
 }

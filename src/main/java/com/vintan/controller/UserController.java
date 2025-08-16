@@ -5,10 +5,13 @@ import com.vintan.dto.response.user.*;
 import com.vintan.dto.request.user.UserLoginRequestDto;
 import com.vintan.dto.request.user.UserRegisterRequestDto;
 import com.vintan.repository.UserRepository;
+import com.vintan.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,80 +20,60 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth/login")
 public class UserController {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
 
     @PostMapping("/register")
-    public RegisterResponseDto register(@Valid @RequestBody UserRegisterRequestDto requestDto) {
-        String encodedPassword = passwordEncoder.encode(requestDto.getPassword());
+    public ResponseEntity<RegisterResponseDto> register(@Valid @RequestBody UserRegisterRequestDto requestDto) {
         try {
-            User newUser = User.builder()
-                    .id(requestDto.getId())
-                    .name(requestDto.getName())
-                    .password(encodedPassword)
-                    .email(requestDto.getEmail())
-                    .businessNumber(requestDto.getBusinessNumber())
-                    .build();
-            userRepository.save(newUser);
-            return new RegisterResponseDto(1);
-        } catch (Exception e) {
-            return new RegisterResponseDto(0);
+            userService.register(requestDto);
+            return ResponseEntity.ok(new RegisterResponseDto(1));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new RegisterResponseDto(0));
         }
     }
 
     @GetMapping("/duplicate/{userId}")
-    public DuplicatedCheckResponseDto checkUserIdDuplicate(@PathVariable String userId) {
-        boolean isDuplicate = userRepository.existsById(userId);
-
-        if (isDuplicate) {
-            return new DuplicatedCheckResponseDto(1);
-        } else {
-            return new DuplicatedCheckResponseDto(0);
-        }
+    public ResponseEntity<DuplicatedCheckResponseDto> checkUserIdDuplicate(@PathVariable String userId) {
+        boolean isDuplicate = userService.isUserDuplicated(userId);
+        return ResponseEntity.ok(new DuplicatedCheckResponseDto(isDuplicate ? 1 : 0));
     }
 
     @PostMapping("/login")
-    public UserLoginResponseDto login(@RequestBody UserLoginRequestDto requestDto, HttpServletRequest request) {
+    public ResponseEntity<UserLoginResponseDto> login(@RequestBody UserLoginRequestDto requestDto, HttpServletRequest request) {
         try {
-            User user = userRepository.findById(requestDto.getId()).orElseThrow(() -> new IllegalArgumentException("do not exist"));
-            if (!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())) {
-                throw new IllegalArgumentException("wrong password");
-            }
+            User user = userService.login(requestDto.getId(), requestDto.getPassword());
 
             HttpSession session = request.getSession(true);
             session.setAttribute("loggedInUser", new SessionUserDto(user));
 
-            return new UserLoginResponseDto(1);
-        } catch (Exception e) {
-            return new UserLoginResponseDto(0);
+            return ResponseEntity.ok(new UserLoginResponseDto(1));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new UserLoginResponseDto(0));
         }
     }
 
     @PostMapping("logout")
-    public LogoutResponseDto logout(HttpServletRequest request) {
+    public ResponseEntity<LogoutResponseDto> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        try {
-            if (session != null) {
-                session.invalidate();
-            }
-            return new LogoutResponseDto(1);
-        } catch (Exception e) {
-            return new LogoutResponseDto(0);
+        if (session != null) {
+            session.invalidate();
         }
+        return ResponseEntity.ok(new LogoutResponseDto(1));
     }
 
     @GetMapping("/session")
-    public UserInfoResponseDto getUserInfo(HttpServletRequest request) {
+    public ResponseEntity<UserInfoResponseDto> getUserInfo(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
 
         if (session == null || session.getAttribute("loggedInUser") == null) {
-            return new UserInfoResponseDto(0, 0);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new UserInfoResponseDto(0, 0));
         }
 
         SessionUserDto sessionUserDto = (SessionUserDto) session.getAttribute("loggedInUser");
 
         int isBusiness = (sessionUserDto.getBusinessNumber() > 0) ? 1 : 0;
 
-        return new UserInfoResponseDto(1, isBusiness);
+        return ResponseEntity.ok(new UserInfoResponseDto(1, isBusiness));
     }
 }

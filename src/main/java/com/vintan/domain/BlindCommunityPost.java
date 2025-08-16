@@ -3,10 +3,7 @@ package com.vintan.domain;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.vintan.embedded.CategoryRate;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -16,6 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Setter
 @Getter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
@@ -29,6 +27,8 @@ public class BlindCommunityPost {
     private String title;
     private String positive;
     private String negative;
+    private String address;
+    private Long regionNo;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
