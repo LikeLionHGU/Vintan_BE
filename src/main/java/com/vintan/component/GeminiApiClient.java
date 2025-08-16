@@ -33,14 +33,21 @@ public class GeminiApiClient {
         return callGeminiApi(prompt, "개별 업체 설명 생성에 실패했습니다.");
     }
 
-    public String summarizeOverallCommercialArea(List<CompanyDto> competitors) {
+    public String analyzeCompetition(List<CompanyDto> competitors) {
         StringBuilder promptBuilder = new StringBuilder("다음은 한 지역의 경쟁 업체들 각각에 대한 요약 정보입니다:\n");
         for (CompanyDto competitor : competitors) {
             promptBuilder.append(String.format("- %s: %s\n", competitor.getName(), competitor.getDescription()));
         }
-        promptBuilder.append("\n이 정보들을 종합해서, 이 상권의 전체적인 특징, 강점, 약점을 한국어로 3~4문장으로 요약해주세요.");
+        promptBuilder.append("\n이 정보들을 종합해서, 이 상권의 '경쟁 강도'에 대한 분석과 25점 만점의 점수를 포함하여 응답해줘.");
+        promptBuilder.append("응답은 반드시 아래의 마크다운 코드 블록 형식에 맞춰서 다른 말 없이 JSON 데이터만 반환해줘:\n");
+        promptBuilder.append("```json\n");
+        promptBuilder.append("{\n");
+        promptBuilder.append("  \"summary\": \"경쟁 강도에 대한 종합 분석 내용\",\n");
+        promptBuilder.append("  \"score\": 25점_만점의_점수\n");
+        promptBuilder.append("}\n");
+        promptBuilder.append("```");
 
-        return callGeminiApi(promptBuilder.toString(), "최종 상권 요약 생성에 실패했습니다.");
+        return callGeminiApi(promptBuilder.toString(), "경쟁 강도 분석에 실패했습니다.");
     }
 
     private String callGeminiApi(String prompt, String errorMessage) {
@@ -60,11 +67,15 @@ public class GeminiApiClient {
         try {
             String jsonBody = objectMapper.writeValueAsString(requestBody);
             HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
-
             String response = restTemplate.postForObject(apiUrl, requestEntity, String.class);
-
             JsonNode root = objectMapper.readTree(response);
-            return root.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
+
+            String resultText = root.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
+
+            if (resultText.startsWith("```json")) {
+                resultText = resultText.substring(7, resultText.length() - 3).trim();
+            }
+            return resultText;
 
         } catch (Exception e) {
             e.printStackTrace();
