@@ -50,6 +50,43 @@ public class GeminiApiClient {
         return callGeminiApi(promptBuilder.toString(), "경쟁 강도 분석에 실패했습니다.");
     }
 
+    public String generateAccessibilityAnalysis(String address, List<String> landmarks, List<String> stations, List<String> busRoutes) {
+        String prompt = String.format(
+                "너는 상권 분석 전문가야. 아래 데이터를 바탕으로 '접근성 및 주변 시설 분석' 보고서를 작성해줘.\n\n" +
+                        "[입력 데이터]\n" +
+                        "- 분석 주소: %s\n" +
+                        "- 주변 주요 랜드마크 (반경 1km): %s\n" +
+                        "- 주변 지하철/기차역 (반경 1km): %s\n" +
+                        "- 주변 버스 노선: %s\n\n" +
+                        "[요청 사항]\n" +
+                        "1. landmark: 수집된 랜드마크 정보를 바탕으로 이 지역의 상권 특징을 분석해줘. (데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
+                        "2. transportationPrice: 이 지역의 택시비, 버스비 등 전반적인 교통비 수준을 분석해줘.(데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
+                        "3. parkingPrice: 이 지역의 주차비 수준과 주차 용이성을 분석해줘.(데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
+                        "4. publicTransport: 수집된 버스 노선 정보를 바탕으로 대중교통 편의성을 분석해줘.(데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
+                        "5. stationInfo: 수집된 역 정보를 바탕으로 광역 교통 편의성을 분석해줘.(데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
+                        "6. summary: 위 모든 정보를 종합한 최종 요약을 작성해줘.\n" +
+                        "7. score: 위 모든 것을 고려한 최종 접근성 점수를 25점 만점으로 알려줘.\n\n" +
+                        "응답은 반드시 다음 JSON 형식에 맞춰서 다른 말 없이 데이터만 반환해줘:\n" +
+                        "```json\n" +
+                        "{\n" +
+                        "  \"summary\": \"최종 요약 내용\",\n" +
+                        "  \"transportationPrice\": \"교통비 분석 내용\",\n" +
+                        "  \"parkingPrice\": \"주차비 분석 내용\",\n" +
+                        "  \"landmark\": \"랜드마크 분석 내용\",\n" +
+                        "  \"publicTransport\": \"대중교통 분석 내용\",\n" +
+                        "  \"stationInfo\": \"역/광역 분석 내용\",\n" +
+                        "  \"score\": 25점_만점의_점수\n" +
+                        "}\n" +
+                        "```",
+                address,
+                String.join(", ", landmarks),
+                String.join(", ", stations),
+                String.join(", ", busRoutes)
+        );
+
+        return callGeminiApi(prompt, "접근성 분석 생성에 실패했습니다.");
+    }
+
     private String callGeminiApi(String prompt, String errorMessage) {
         String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" + geminiApiKey;
 

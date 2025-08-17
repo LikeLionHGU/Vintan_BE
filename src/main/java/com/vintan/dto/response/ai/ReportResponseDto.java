@@ -14,12 +14,14 @@ public class ReportResponseDto {
     private com.vintan.dto.response.report.FinalScoreResponseDto finalScore;
     private List<CompetitorResponseDto> competitors;
     private String competitorSummary;
+    private AccessibilityAnalysisResponseDto accessibilityAnalysis;
 
     public ReportResponseDto(Report report) {
         this.id = report.getId();
         this.address = report.getAddress();
         this.category = report.getCategory();
         this.finalScore = new com.vintan.dto.response.report.FinalScoreResponseDto(report.getFinalScore());
+        this.accessibilityAnalysis = new AccessibilityAnalysisResponseDto(report.getAccessibilityAnalysis());
         this.competitors = report.getCompetitors().stream()
                 .map(CompetitorResponseDto::new)
                 .collect(Collectors.toList());

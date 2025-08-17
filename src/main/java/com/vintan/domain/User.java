@@ -37,6 +37,12 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Report> reports = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user")
+    private List<QnaComment> qnaComments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<QnaPost> qnaPosts = new ArrayList<>();
+
     @CreatedDate
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.mm.dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(updatable = false)
