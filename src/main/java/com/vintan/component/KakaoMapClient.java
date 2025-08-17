@@ -1,64 +1,99 @@
 package com.vintan.component;
 
-import com.vintan.dto.aiReport.CompanyDto;
+
+import com.vintan.dto.response.ai.KakaoAddressResponse;
+import com.vintan.dto.response.ai.KakaoCategoryResponse;
 import com.vintan.dto.response.ai.KakaoPlaceDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import com.fasterxml.jackson.databind.JsonNode; // Jackson import
-import com.fasterxml.jackson.databind.ObjectMapper; // Jackson import
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.ArrayList;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class KakaoMapClient {
 
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${kakao.api.key}")
     private String kakaoApiKey;
 
     public List<KakaoPlaceDto> searchNearbyBusinesses(String address, String categoryCode) {
-        try {
-            String urlForCoords = "https://dapi.kakao.com/v2/local/search/address.json?query=" + address;
-            HttpEntity<String> entityForCoords = createHttpEntity();
-            ResponseEntity<String> coordsResponse = restTemplate.exchange(urlForCoords, HttpMethod.GET, entityForCoords, String.class);
-
-            JsonNode coordsRoot = objectMapper.readTree(coordsResponse.getBody());
-            if (coordsRoot.path("documents").isEmpty()) {
-                return Collections.emptyList();
-            }
-            String longitude = coordsRoot.path("documents").get(0).path("x").asText();
-            String latitude = coordsRoot.path("documents").get(0).path("y").asText();
-
-            String urlForPlaces = String.format("https://dapi.kakao.com/v2/local/search/category.json?category_group_code=%s&x=%s&y=%s&radius=2000",
-                    categoryCode, longitude, latitude);
-            HttpEntity<String> entityForPlaces = createHttpEntity();
-            ResponseEntity<String> placesResponse = restTemplate.exchange(urlForPlaces, HttpMethod.GET, entityForPlaces, String.class);
-
-            JsonNode placesRoot = objectMapper.readTree(placesResponse.getBody());
-
-            List<KakaoPlaceDto> companies = new ArrayList<>();
-            for (JsonNode doc : placesRoot.path("documents")) {
-                companies.add(new KakaoPlaceDto(
-                        doc.path("place_name").asText(),
-                        doc.path("road_address_name").asText(),
-                        doc.path("category_name").asText()
-                ));
-                if (companies.size() >= 10) break;
-            }
-            return companies;
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        KakaoAddressResponse.Document coordinate = getCoordinatesFromAddress(address);
+        if (coordinate == null) {
             return Collections.emptyList();
         }
+
+        URI uri = UriComponentsBuilder
+                .fromUriString("https://dapi.kakao.com/v2/local/search/category.json")
+                .queryParam("category_group_code", categoryCode)
+                .queryParam("x", coordinate.longitude())
+                .queryParam("y", coordinate.latitude())
+                .queryParam("radius", 500)
+                .queryParam("size", 5)
+                .encode()
+                .build()
+                .toUri();
+
+        HttpEntity<String> entity = createHttpEntity();
+        KakaoCategoryResponse response = restTemplate.exchange(uri, HttpMethod.GET, entity, KakaoCategoryResponse.class).getBody();
+
+        if (response == null || response.documents() == null) {
+            return Collections.emptyList();
+        }
+
+        return response.documents().stream()
+                .map(doc -> new KakaoPlaceDto(doc.placeName(), doc.roadAddressName(), doc.categoryName()))
+                .collect(Collectors.toList());
+    }
+
+    public List<String> findPlaceNamesByCategory(Double longitude, Double latitude, String categoryCode) {
+        URI uri = UriComponentsBuilder
+                .fromUriString("https://dapi.kakao.com/v2/local/search/category.json")
+                .queryParam("category_group_code", categoryCode)
+                .queryParam("x", longitude)
+                .queryParam("y", latitude)
+                .queryParam("radius", 1000)
+                .encode()
+                .build()
+                .toUri();
+
+        HttpEntity<String> entity = createHttpEntity();
+        KakaoCategoryResponse response = restTemplate.exchange(uri, HttpMethod.GET, entity, KakaoCategoryResponse.class).getBody();
+
+        if (response == null || response.documents() == null) {
+            return Collections.emptyList();
+        }
+
+
+        return response.documents().stream()
+                .map(KakaoCategoryResponse.PlaceDocument::placeName)
+                .collect(Collectors.toList());
+    }
+
+    public KakaoAddressResponse.Document getCoordinatesFromAddress(String address) {
+        URI uri = UriComponentsBuilder
+                .fromUriString("https://dapi.kakao.com/v2/local/search/address.json")
+                .queryParam("query", address)
+                .encode()
+                .build()
+                .toUri();
+
+        HttpEntity<String> entity = createHttpEntity();
+        KakaoAddressResponse response = restTemplate.exchange(uri, HttpMethod.GET, entity, KakaoAddressResponse.class).getBody();
+
+        if (response != null && !response.documents().isEmpty()) {
+            return response.documents().getFirst();
+        }
+        return null;
     }
 
     private HttpEntity<String> createHttpEntity() {

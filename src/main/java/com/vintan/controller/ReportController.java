@@ -31,7 +31,7 @@ public class ReportController {
         SessionUserDto sessionUser = (SessionUserDto) session.getAttribute("loggedInUser");
         String userId = sessionUser.getId();
 
-        Report reportEntity = reportService.generateCompetitionReport(
+        Report reportEntity = reportService.generateFullReport(
                 requestDto.getAddress(),
                 requestDto.getCategoryCode(),
                 userId
