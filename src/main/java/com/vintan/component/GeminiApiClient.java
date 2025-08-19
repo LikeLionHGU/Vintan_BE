@@ -145,16 +145,75 @@ public class GeminiApiClient {
                             "  \"score\": 25점_만점의_점수\n" +
                             "}\n" +
                             "```",
-                    communityDataAsJson // 수정된 부분
+                    communityDataAsJson
             );
             String geminiOutput = callGeminiApi(prompt, "접근성 분석 생성에 실패했습니다.");
             return new GeneralOverviewGeminiDto(geminiOutput, responseDto);
 
         } catch (JsonProcessingException e) {
-            // JSON 변환 중 에러가 발생했을 때의 처리
-            // 예를 들어, 로깅을 하거나 사용자 정의 예외를 던질 수 있습니다.
             throw new RuntimeException("커뮤니티 데이터 JSON 변환에 실패했습니다.", e);
         }
+    }
+
+    public String generateFinalReport(String competitionAnalysisJson,
+                                      String accessibilityAnalysisJson,
+                                      String floatingPopulationAnalysisJson,
+                                      GeneralOverviewGeminiDto genearlOverviewGeminiDto,
+                                      String address,
+                                      String categoryCode,
+                                      double pyeong,
+                                      String userDetailNeeds,
+                                      int competitionScore,
+                                      int accessibilityScore,
+                                      int floatingPopulationScore,
+                                      int generalOverviewScore,
+                                      int totalScore) {
+        String prompt = String.format(
+                "너는 대한민국 최고의 상권 분석가이자 창업 컨설턴트야. 아래의 모든 데이터를 종합해서 예비 창업자를 위한 최종 보고서를 생성해줘.\n\n" +
+                        "[기본 정보]\n" +
+                        "- 창업 주소: %s\n" +
+                        "- 업종: %s\n" +
+                        "- 매장 평수: %.1f평\n" +
+                        "- 사용자 요청사항: %s\n\n" +
+                        "[분석 데이터 요약]\n" +
+                        "- 경쟁 환경 분석 결과: %s\n" +
+                        "- 접근성 및 주변 시설 분석 결과: %s\n" +
+                        "- 유동인구 분석 결과: %s\n" +
+                        "- 커뮤니티 리뷰 분석 결과: %s\n\n" +
+                        "[종합 점수]\n" +
+                        "- 경쟁 점수: %d/25점\n" +
+                        "- 접근성 점수: %d/25점\n" +
+                        "- 유동인구 점수: %d/25점\n" +
+                        "- 커뮤니티 점수: %d/25점\n" +
+                        "- 최종 종합 점수: %d/100점\n\n" +
+                        "[요청 사항]\n" +
+                        "1. 위 모든 정보를 바탕으로, '최종 업종 적합도는 %d점 입니다.' 라는 문장으로 시작하는 최종 리포트를 작성해줘.\n" +
+                        "2. '다음과 같은 실행을 제안합니다.' 라는 문장 아래에, 전문적이면서도 이해하기 쉬운 구체적인 실행 방안 6가지를 제안해줘.\n" +
+                        "3. 각 제안은 다음 항목을 반드시 포함해야 하며, 주어진 데이터를 적극적으로 활용해서 현실적인 조언을 해줘야 해.\n" +
+                        "   - 1. 좌석 구성: 매장 평수와 업종을 고려한 테이블 배치, 동선 확보 방안 제안\n" +
+                        "   - 2. 메뉴 전략: 경쟁 환경과 주변 상권 특징을 고려한 런치/디너 메뉴 구성 및 가격대 제안\n" +
+                        "   - 3. 주차/정산: 접근성 분석 결과를 바탕으로 한 주차 문제 해결 방안 및 정산 전략 제안\n" +
+                        "   - 4. 가시성: 주변 환경을 고려한 간판, 조명(lx 단위 언급 포함) 등 시각적 어필 전략 제안\n" +
+                        "   - 5. 예약/대기: 유동인구 특성과 업종을 고려한 효율적인 예약 및 대기 시스템 제안\n" +
+                        "   - 6. 제휴: 주변 시설(아파트, 오피스, 관공서 등)을 활용한 타겟 고객 제휴 마케팅 방안 제안\n" +
+                        "4. 응답은 다른 설명 없이 최종 보고서 내용만 깔끔하게 출력해줘.",
+                address,
+                categoryCode,
+                pyeong,
+                userDetailNeeds,
+                competitionAnalysisJson,
+                accessibilityAnalysisJson,
+                floatingPopulationAnalysisJson,
+                genearlOverviewGeminiDto.getOutput(),
+                competitionScore,
+                accessibilityScore,
+                floatingPopulationScore,
+                generalOverviewScore,
+                totalScore,
+                totalScore
+        );
+
+        return callGeminiApi(prompt, "최종 보고서 생성에 실패했습니다.");
     }
 
     private String callGeminiApi(String prompt, String errorMessage) {
@@ -189,6 +248,7 @@ public class GeminiApiClient {
             return errorMessage;
         }
     }
+
 
 
 }

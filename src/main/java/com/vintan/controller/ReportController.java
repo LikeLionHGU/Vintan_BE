@@ -32,8 +32,7 @@ public class ReportController {
         String userId = sessionUser.getId();
 
         Report reportEntity = reportService.generateFullReport(
-                requestDto.getAddress(),
-                requestDto.getCategoryCode(),
+                requestDto,
                 userId,
                 regionId
         );
