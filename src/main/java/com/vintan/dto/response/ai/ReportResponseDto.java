@@ -17,6 +17,7 @@ public class ReportResponseDto {
     private String competitorSummary;
     private AccessibilityAnalysisResponseDto accessibilityAnalysis;
     private FloatingPopulationAnalysisDto floatingPopulationAnalysis;
+    private GeneralOverviewReportDto generalOverviewReport;
 
     public ReportResponseDto(Report report) {
         this.id = report.getId();
@@ -25,6 +26,7 @@ public class ReportResponseDto {
         this.finalScore = new com.vintan.dto.response.report.FinalScoreResponseDto(report.getFinalScore());
         this.accessibilityAnalysis = new AccessibilityAnalysisResponseDto(report.getAccessibilityAnalysis());
         this.floatingPopulationAnalysis = new FloatingPopulationAnalysisDto(report.getFloatingPopulationAnalysis());
+        this.generalOverviewReport = new GeneralOverviewReportDto(report.getOverallReview(), report.getAverageCommunityScore(), report.getAverageCleannessScore(), report.getAveragePopulationScore(), report.getAverageRentFeeScore(), report.getAverageReachabilityScore());
         this.competitors = report.getCompetitors().stream()
                 .map(CompetitorResponseDto::new)
                 .collect(Collectors.toList());
