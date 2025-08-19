@@ -6,7 +6,6 @@ import lombok.Getter;
 @Getter
 public class AccessibilityAnalysisResponseDto {
     private String summary;
-    private String transportationPrice;
     private String parkingPrice;
     private String landmark;
     private String publicTransport;
@@ -15,8 +14,7 @@ public class AccessibilityAnalysisResponseDto {
 
     public AccessibilityAnalysisResponseDto(AccessibilityAnalysis analysis) {
         this.summary = analysis.getSummary();
-        this.transportationPrice = analysis.getTransportationPrice();
-        this.parkingPrice = analysis.getParkingPrice();
+        this.parkingPrice = analysis.getParking();
         this.landmark = analysis.getLandmark();
         this.publicTransport = analysis.getPublicTransport();
         this.stationInfo = analysis.getStationInfo();
