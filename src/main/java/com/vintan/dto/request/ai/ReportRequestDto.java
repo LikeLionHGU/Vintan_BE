@@ -6,4 +6,6 @@ import lombok.Getter;
 public class ReportRequestDto {
     private String address;
     private String categoryCode;
+    private double pyeong;
+    private String userDetail;
 }

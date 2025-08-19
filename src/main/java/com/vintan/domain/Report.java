@@ -55,8 +55,10 @@ public class Report {
     private double averageReachabilityScore;
     private double averageRentFeeScore;
 
+    @Lob
+    private String finalReportSummary;
+
     @Embedded
-    // 향후 충돌 방지를 위해 FinalScore의 컬럼명도 명시적으로 지정
     @AttributeOverrides({
             @AttributeOverride(name = "totalScore", column = @Column(name = "final_total_score")),
             @AttributeOverride(name = "competitionScore", column = @Column(name = "final_competition_score")),

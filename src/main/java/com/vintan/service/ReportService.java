@@ -10,6 +10,7 @@ import com.vintan.domain.Competitor;
 import com.vintan.domain.Report;
 import com.vintan.domain.User;
 import com.vintan.dto.aiReport.CompanyDto;
+import com.vintan.dto.request.ai.ReportRequestDto;
 import com.vintan.dto.response.ai.GeneralOverviewGeminiDto;
 import com.vintan.dto.response.ai.KakaoAddressResponse;
 import com.vintan.dto.response.ai.KakaoPlaceDto;
@@ -41,7 +42,12 @@ public class ReportService {
     private final BlindCommunityPostRepository blindCommunityPostRepository;
 
     @Transactional
-    public Report generateFullReport(String address, String categoryCode, String userId, Long regionId) {
+    public Report generateFullReport(ReportRequestDto requestDto, String userId, Long regionId) {
+        String address = requestDto.getAddress();
+        String categoryCode = requestDto.getCategoryCode();
+        double pyeong = requestDto.getPyeong();
+        String userDetail = requestDto.getUserDetail();
+
         // --- 1. 사전 준비: 사용자 조회 및 주소->좌표 변환 ---
         User writer = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다: " + userId));
@@ -103,6 +109,22 @@ public class ReportService {
             int generalOverviewScore = generalOverviewNode.path("review_score").asInt();
             int totalScore = competitionScore + accessibilityScore + floatingPopulationScore + generalOverviewScore;
 
+            String finalReportAnalysisOutput = geminiApiClient.generateFinalReport(
+                    competitionAnalysisJson,
+                    accessibilityAnalysisJson,
+                    floatingPopulationAnalysisJson,
+                    genearlOverviewGeminiDto,
+                    address,
+                    categoryCode,
+                    pyeong,
+                    userDetail,
+                    competitionScore,
+                    accessibilityScore,
+                    floatingPopulationScore,
+                    generalOverviewScore,
+                    totalScore
+            );
+
             FinalScore finalScore = FinalScore.builder()
                     .competitionScore(competitionScore)
                     .accessibilityScore(accessibilityScore)
@@ -125,6 +147,7 @@ public class ReportService {
                     .averagePopulationScore(communityAllReviewResponseDto.getPeople())
                     .averageReachabilityScore(communityAllReviewResponseDto.getAccessibility())
                     .averageRentFeeScore(communityAllReviewResponseDto.getRentFee())
+                    .finalReportSummary(finalReportAnalysisOutput)
                     .finalScore(finalScore)
                     .build();
 
