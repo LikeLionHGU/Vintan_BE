@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface BlindCommunityPostRepository extends JpaRepository<BlindCommunityPost, Long> {
     List<BlindCommunityPost> findByRegionNo(Long regionNo);
+    BlindCommunityPost findByUser_Id(String userId);
 }

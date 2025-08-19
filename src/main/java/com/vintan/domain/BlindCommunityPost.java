@@ -45,4 +45,6 @@ public class BlindCommunityPost {
     @LastModifiedDate
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.mm.dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime updateDate;
+
+
 }
