@@ -13,6 +13,7 @@ import com.vintan.dto.response.ai.KakaoAddressResponse;
 import com.vintan.dto.response.ai.KakaoPlaceDto;
 import com.vintan.embedded.AccessibilityAnalysis;
 import com.vintan.embedded.FinalScore;
+import com.vintan.embedded.FloatingPopulationAnalysis;
 import com.vintan.repository.ReportRepository;
 import com.vintan.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -69,23 +70,28 @@ public class ReportService {
         // 3-3. 접근성 분석
         String accessibilityAnalysisJson = geminiApiClient.generateAccessibilityAnalysis(address, landmarks, stations, busRoutes);
 
+        String floatingPopulationAnalysisJson = geminiApiClient.generatefloatingPopulationAnalysisJson(address);
+
         try {
             // --- 4. Gemini 응답 파싱 및 엔티티 조립 ---
             JsonNode competitionNode = objectMapper.readTree(competitionAnalysisJson);
             JsonNode accessibilityNode = objectMapper.readTree(accessibilityAnalysisJson);
+            JsonNode floatingPopulationNode = objectMapper.readTree(floatingPopulationAnalysisJson);
 
             // 각 분석 결과 객체 생성
             AccessibilityAnalysis accessibilityAnalysis = objectMapper.treeToValue(accessibilityNode, AccessibilityAnalysis.class);
+            FloatingPopulationAnalysis floatingPopulationAnalysis = objectMapper.treeToValue(floatingPopulationNode, FloatingPopulationAnalysis.class);
 
             // FinalScore 객체 생성
             int competitionScore = competitionNode.path("score").asInt();
             int accessibilityScore = accessibilityAnalysis.getScore();
-            // ... (나중에 다른 점수들도 추가)
-            int totalScore = competitionScore + accessibilityScore; // 예시 총점
+            int floatingPopulationScore = floatingPopulationNode.path("score").asInt();
+            int totalScore = competitionScore + accessibilityScore + floatingPopulationScore;
 
             FinalScore finalScore = FinalScore.builder()
                     .competitionScore(competitionScore)
                     .accessibilityScore(accessibilityScore)
+                    .floatingPopulationScore(floatingPopulationScore)
                     .totalScore(totalScore)
                     .build();
 
@@ -96,6 +102,7 @@ public class ReportService {
                     .user(writer)
                     .competitorSummary(competitionNode.path("summary").asText())
                     .accessibilityAnalysis(accessibilityAnalysis)
+                    .floatingPopulationAnalysis(floatingPopulationAnalysis)
                     .finalScore(finalScore)
                     .build();
 

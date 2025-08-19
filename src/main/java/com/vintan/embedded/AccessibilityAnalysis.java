@@ -15,8 +15,7 @@ import lombok.NoArgsConstructor;
 public class AccessibilityAnalysis {
     @Lob
     private String summary;
-    private String transportationPrice;
-    private String parkingPrice;
+    private String parking;
     private String landmark;
     private String publicTransport;
     private String stationInfo;

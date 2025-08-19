@@ -60,18 +60,16 @@ public class GeminiApiClient {
                         "- 주변 버스 노선: %s\n\n" +
                         "[요청 사항]\n" +
                         "1. landmark: 수집된 랜드마크 정보를 바탕으로 이 지역의 상권 특징을 분석해줘. (데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
-                        "2. transportationPrice: 이 지역의 택시비, 버스비 등 전반적인 교통비 수준을 분석해줘.(데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
-                        "3. parkingPrice: 이 지역의 주차비 수준과 주차 용이성을 분석해줘.(데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
-                        "4. publicTransport: 수집된 버스 노선 정보를 바탕으로 대중교통 편의성을 분석해줘.(데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
-                        "5. stationInfo: 수집된 역 정보를 바탕으로 광역 교통 편의성을 분석해줘.(데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
-                        "6. summary: 위 모든 정보를 종합한 최종 요약을 작성해줘.\n" +
-                        "7. score: 위 모든 것을 고려한 최종 접근성 점수를 25점 만점으로 알려줘.\n\n" +
+                        "2. parking: 이 지역에 해당하는 주차 환경은 어떤 것 같은지 분석해줘\n" +
+                        "3. publicTransport: 수집된 버스 노선 정보를 바탕으로 대중교통 편의성을 분석해줘.(데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
+                        "4. stationInfo: 수집된 역 정보를 바탕으로 광역 교통 편의성을 분석해줘.(데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
+                        "5. summary: 위 모든 정보를 종합한 최종 요약을 작성해줘.\n" +
+                        "6. score: 위 모든 것을 고려한 최종 접근성 점수를 25점 만점으로 알려줘.\n\n" +
                         "응답은 반드시 다음 JSON 형식에 맞춰서 다른 말 없이 데이터만 반환해줘:\n" +
                         "```json\n" +
                         "{\n" +
                         "  \"summary\": \"최종 요약 내용\",\n" +
-                        "  \"transportationPrice\": \"교통비 분석 내용\",\n" +
-                        "  \"parkingPrice\": \"주차비 분석 내용\",\n" +
+                        "  \"parking\": \"주차비 분석 내용\",\n" +
                         "  \"landmark\": \"랜드마크 분석 내용\",\n" +
                         "  \"publicTransport\": \"대중교통 분석 내용\",\n" +
                         "  \"stationInfo\": \"역/광역 분석 내용\",\n" +
@@ -82,6 +80,36 @@ public class GeminiApiClient {
                 String.join(", ", landmarks),
                 String.join(", ", stations),
                 String.join(", ", busRoutes)
+        );
+
+        return callGeminiApi(prompt, "접근성 분석 생성에 실패했습니다.");
+    }
+
+    public String generatefloatingPopulationAnalysisJson(String address) {
+        String prompt = String.format(
+                "너는 상권 분석 전문가야. 아래 데이터를 바탕으로 '유동인구' 보고서를 작성해줘.\n\n" +
+                        "[입력 데이터]\n" +
+                        "- 분석 주소: %s\n" +
+                        "[요청 사항]\n" +
+                        "1. weekdayAnalysis: 이 주변지역에 평일에는 유동인구가 어떠한지 분석해줘\n" +
+                        "2. weekendAnalysis: 이 주변지역에 주말에는 유동인구가 어떠한지 분석해줘\n" +
+                        "3. nearbyFacilities: 이 주변지역에 주별시설 영향이 유동인구에 어떠한지 분석해줘\n" +
+                        "4. ageGroup: 이 주변지역에 연령대의 유동인구는 어떻게 형성되어있는지 분석해줘\n" +
+                        "5. summary: 위 모든 정보를 종합한 최종 요약을 작성해줘.\n" +
+                        "6. score: 위 모든 것을 고려한 최종 유동인구 점수를 25점 만점으로 알려줘.\n\n" +
+                        "응답은 반드시 다음 JSON 형식에 맞춰서 다른 말 없이 데이터만 반환해줘:\n" +
+                        "```json\n" +
+                        "{\n" +
+                        "  \"summary\": \"최종 요약 내용\",\n" +
+                        "  \"weekdayAnalysis\": \"평이 분석 내용\",\n" +
+                        "  \"weekendAnalysis\": \"주말 분석 내용\",\n" +
+                        "  \"nearbyFacilities\": \"주변시설 분석 내용\",\n" +
+                        "  \"ageGroup\": \"연령대별 분석 내용\",\n" +
+                        "  \"score\": 25점_만점의_점수\n" +
+                        "}\n" +
+                        "```",
+                address,
+                String.join(", ", address)
         );
 
         return callGeminiApi(prompt, "접근성 분석 생성에 실패했습니다.");
