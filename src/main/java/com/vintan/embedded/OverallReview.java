@@ -14,16 +14,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OverallReview {
-    private double totalAverageScore;
 
-    @Embedded
-    private CategoryRate categoryRate;
+    @Lob String review_summary;
 
-    private String keywords;
     @Lob
-    private String strengthsSummary;
+    private String positive;
     @Lob
-    private String weaknessesSummary;
+    private String negative;
 
-    private int reviewScore;
+    private int review_score;
 }

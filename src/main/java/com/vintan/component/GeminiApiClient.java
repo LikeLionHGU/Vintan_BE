@@ -1,9 +1,13 @@
 package com.vintan.component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vintan.dto.aiReport.CompanyDto;
+import com.vintan.dto.response.ai.GeneralOverviewGeminiDto;
 import com.vintan.dto.response.ai.KakaoPlaceDto;
+import com.vintan.dto.response.community.CommunityAllReviewResponseDto;
+import com.vintan.service.BlindCommunityPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -21,6 +25,7 @@ public class GeminiApiClient {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final BlindCommunityPostService blindCommunityPostService;
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
@@ -108,11 +113,48 @@ public class GeminiApiClient {
                         "  \"score\": 25점_만점의_점수\n" +
                         "}\n" +
                         "```",
-                address,
-                String.join(", ", address)
+                address
         );
 
         return callGeminiApi(prompt, "접근성 분석 생성에 실패했습니다.");
+    }
+
+    public GeneralOverviewGeminiDto generateOverallReview(Long regionId) {
+        CommunityAllReviewResponseDto responseDto = blindCommunityPostService.getAllPost(regionId);
+
+        try {
+            // 1. responseDto 객체를 JSON 문자열로 변환합니다.
+            String communityDataAsJson = objectMapper.writeValueAsString(responseDto);
+
+            // 2. 변환된 JSON 문자열을 프롬프트에 넣습니다.
+            String prompt = String.format(
+                    "너는 상권 분석 전문가야. 아래 데이터를 바탕으로 '전체 적인 커뮤니티' 보고서를 작성해줘.\n\n" +
+                            "[입력 데이터]\n" +
+                            "- 커뮤니티 정보: %s\n" +
+                            "[요청 사항]\n" +
+                            "1. positive: 커뮤니티가 분석한 장점 (정보가 없으면 \"커뮤니티 글 없음\" 이렇게 나오게 해줘)\n" +
+                            "2. negative: (정보가 없으면 \"커뮤니티 글 없음\" 이렇게 나오게 해줘)\n" +
+                            "3. summary: 위 모든 정보를 종합한 최종 요약을 작성해줘.(정보가 없으면 \"커뮤니티 글 없음\" 이렇게 나오게 해줘)\n" +
+                            "4. score: 위 모든 것을 고려한 최종 접근성 점수를 25점 만점으로 알려줘.\n\n" +
+                            "응답은 반드시 다음 JSON 형식에 맞춰서 다른 말 없이 데이터만 반환해줘:\n" +
+                            "```json\n" +
+                            "{\n" +
+                            "  \"summary\": \"최종 요약 내용\",\n" +
+                            "  \"positive\": \"커뮤니티 전반적인 긍정적인 분석 내용\",\n" +
+                            "  \"negative\": \"커뮤니티 부정적인 긍정적인 분석 내용\",\n" +
+                            "  \"score\": 25점_만점의_점수\n" +
+                            "}\n" +
+                            "```",
+                    communityDataAsJson // 수정된 부분
+            );
+            String geminiOutput = callGeminiApi(prompt, "접근성 분석 생성에 실패했습니다.");
+            return new GeneralOverviewGeminiDto(geminiOutput, responseDto);
+
+        } catch (JsonProcessingException e) {
+            // JSON 변환 중 에러가 발생했을 때의 처리
+            // 예를 들어, 로깅을 하거나 사용자 정의 예외를 던질 수 있습니다.
+            throw new RuntimeException("커뮤니티 데이터 JSON 변환에 실패했습니다.", e);
+        }
     }
 
     private String callGeminiApi(String prompt, String errorMessage) {
@@ -147,4 +189,6 @@ public class GeminiApiClient {
             return errorMessage;
         }
     }
+
+
 }

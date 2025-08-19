@@ -47,15 +47,13 @@ public class Report {
     private AccessibilityAnalysis accessibilityAnalysis;
 
     @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "categoryRate.cleanness", column = @Column(name = "overall_cleanness_score")),
-            @AttributeOverride(name = "categoryRate.people", column = @Column(name = "overall_people_score")),
-            @AttributeOverride(name = "categoryRate.reach", column = @Column(name = "overall_reach_score")),
-            @AttributeOverride(name = "categoryRate.rentFee", column = @Column(name = "overall_rent_fee_score")),
-            // OverallReview 클래스의 필드 이름 변경을 여기에 반영
-            @AttributeOverride(name = "scoreReview", column = @Column(name = "overall_review_score"))
-    })
     private OverallReview overallReview;
+
+    private double averageCommunityScore;
+    private double averageCleannessScore;
+    private double averagePopulationScore;
+    private double averageReachabilityScore;
+    private double averageRentFeeScore;
 
     @Embedded
     // 향후 충돌 방지를 위해 FinalScore의 컬럼명도 명시적으로 지정
