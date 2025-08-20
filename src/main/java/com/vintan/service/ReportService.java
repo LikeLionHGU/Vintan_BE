@@ -41,6 +41,10 @@ public class ReportService {
     private final ObjectMapper objectMapper;
     private final BlindCommunityPostRepository blindCommunityPostRepository;
 
+    public Report getReport(Long reportId) {
+       return reportRepository.getReportById(reportId);
+    }
+
     @Transactional
     public Report generateFullReport(ReportRequestDto requestDto, String userId, Long regionId) {
         String address = requestDto.getAddress();
