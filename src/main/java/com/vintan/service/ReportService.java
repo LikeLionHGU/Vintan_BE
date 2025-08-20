@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vintan.component.GeminiApiClient;
 import com.vintan.component.KakaoMapClient;
 import com.vintan.component.PohangBusApiClient;
+import com.vintan.controller.converter.CategoryConverter;
 import com.vintan.domain.BlindCommunityPost;
 import com.vintan.domain.Competitor;
 import com.vintan.domain.Report;
@@ -48,7 +49,7 @@ public class ReportService {
     @Transactional
     public Report generateFullReport(ReportRequestDto requestDto, String userId, Long regionId) {
         String address = requestDto.getAddress();
-        String categoryCode = requestDto.getCategoryCode();
+        String categoryCode = CategoryConverter.getCategoryCode(requestDto.getCategoryCode());
         double pyeong = requestDto.getPyeong();
         String userDetail = requestDto.getUserDetail();
 
