@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ReportRepository extends JpaRepository<Report, Long> {
+    long countByUser_Id(String userId);
+    Report findTop1ByUser_IdOrderByRegDateDesc(String userId);
 }

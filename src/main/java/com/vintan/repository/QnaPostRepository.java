@@ -23,4 +23,11 @@ public interface QnaPostRepository extends JpaRepository<QnaPost, Long> {
         where p.postId = :postId
     """)
     Optional<QnaPost> findByIdWithComments(@Param("postId") Long postId);
+
+    // 마이페이지: 내 질문글 상위 3개
+    List<QnaPost> findTop3ByUser_IdOrderByCreatedAtDesc(String userId);
+
+    // 댓글 수
+    @Query("select count(c) from QnaComment c where c.post.postId = :postId")
+    int countComments(@Param("postId") Long postId);
 }
