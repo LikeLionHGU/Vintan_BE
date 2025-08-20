@@ -38,6 +38,7 @@ public class QnaPost {
 
     // 댓글 리스트 연관관계 매핑
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<QnaComment> comments = new ArrayList<>();
 
 }

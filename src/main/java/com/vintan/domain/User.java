@@ -35,12 +35,15 @@ public class User {
     private BlindCommunityPost blindCommunityPost;
 
     @OneToMany(mappedBy = "user")
+    @Builder.Default
     private List<Report> reports = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
+    @Builder.Default
     private List<QnaComment> qnaComments = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
+    @Builder.Default
     private List<QnaPost> qnaPosts = new ArrayList<>();
 
     @CreatedDate
