@@ -5,14 +5,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vintan.component.GeminiApiClient;
 import com.vintan.component.KakaoMapClient;
 import com.vintan.component.PohangBusApiClient;
+import com.vintan.domain.BlindCommunityPost;
 import com.vintan.domain.Competitor;
 import com.vintan.domain.Report;
 import com.vintan.domain.User;
 import com.vintan.dto.aiReport.CompanyDto;
+import com.vintan.dto.request.ai.ReportRequestDto;
+import com.vintan.dto.response.ai.GeneralOverviewGeminiDto;
 import com.vintan.dto.response.ai.KakaoAddressResponse;
 import com.vintan.dto.response.ai.KakaoPlaceDto;
+import com.vintan.dto.response.community.CommunityAllReviewResponseDto;
 import com.vintan.embedded.AccessibilityAnalysis;
 import com.vintan.embedded.FinalScore;
+import com.vintan.embedded.FloatingPopulationAnalysis;
+import com.vintan.embedded.OverallReview;
+import com.vintan.repository.BlindCommunityPostRepository;
 import com.vintan.repository.ReportRepository;
 import com.vintan.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +39,15 @@ public class ReportService {
     private final UserRepository userRepository;
     private final PohangBusApiClient pohangBusApiClient;
     private final ObjectMapper objectMapper;
+    private final BlindCommunityPostRepository blindCommunityPostRepository;
 
     @Transactional
-    public Report generateFullReport(String address, String categoryCode, String userId) {
+    public Report generateFullReport(ReportRequestDto requestDto, String userId, Long regionId) {
+        String address = requestDto.getAddress();
+        String categoryCode = requestDto.getCategoryCode();
+        double pyeong = requestDto.getPyeong();
+        String userDetail = requestDto.getUserDetail();
+
         // --- 1. 사전 준비: 사용자 조회 및 주소->좌표 변환 ---
         User writer = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다: " + userId));
@@ -51,6 +64,7 @@ public class ReportService {
         List<String> landmarks = kakaoMapClient.findPlaceNamesByCategory(longitude, latitude, "AT4");
         List<String> stations = kakaoMapClient.findPlaceNamesByCategory(longitude, latitude, "SW8");
         List<String> busRoutes = pohangBusApiClient.getBusRoutesNear(latitude, longitude);
+        List<BlindCommunityPost> posts = blindCommunityPostRepository.findByRegionNo(regionId);
 
         // --- 3. Gemini 분석 (두 가지를 한 번에 또는 순차적으로 진행) ---
         // 여기서는 개별 요약 -> 경쟁 분석 -> 접근성 분석 순으로 진행
@@ -69,23 +83,53 @@ public class ReportService {
         // 3-3. 접근성 분석
         String accessibilityAnalysisJson = geminiApiClient.generateAccessibilityAnalysis(address, landmarks, stations, busRoutes);
 
+        // 3-4. 유동인구 분석
+        String floatingPopulationAnalysisJson = geminiApiClient.generatefloatingPopulationAnalysisJson(address);
+
+        GeneralOverviewGeminiDto genearlOverviewGeminiDto = geminiApiClient.generateOverallReview(regionId);
+        String generalOverviewJson = genearlOverviewGeminiDto.getOutput();
+        CommunityAllReviewResponseDto communityAllReviewResponseDto = genearlOverviewGeminiDto.getCommunityAllReviewResponseDto();
+
         try {
             // --- 4. Gemini 응답 파싱 및 엔티티 조립 ---
             JsonNode competitionNode = objectMapper.readTree(competitionAnalysisJson);
             JsonNode accessibilityNode = objectMapper.readTree(accessibilityAnalysisJson);
+            JsonNode floatingPopulationNode = objectMapper.readTree(floatingPopulationAnalysisJson);
+            JsonNode generalOverviewNode = objectMapper.readTree(generalOverviewJson);
 
             // 각 분석 결과 객체 생성
             AccessibilityAnalysis accessibilityAnalysis = objectMapper.treeToValue(accessibilityNode, AccessibilityAnalysis.class);
+            FloatingPopulationAnalysis floatingPopulationAnalysis = objectMapper.treeToValue(floatingPopulationNode, FloatingPopulationAnalysis.class);
+            OverallReview overallReview = objectMapper.treeToValue(generalOverviewNode, OverallReview.class);
 
             // FinalScore 객체 생성
             int competitionScore = competitionNode.path("score").asInt();
             int accessibilityScore = accessibilityAnalysis.getScore();
-            // ... (나중에 다른 점수들도 추가)
-            int totalScore = competitionScore + accessibilityScore; // 예시 총점
+            int floatingPopulationScore = floatingPopulationNode.path("score").asInt();
+            int generalOverviewScore = generalOverviewNode.path("review_score").asInt();
+            int totalScore = competitionScore + accessibilityScore + floatingPopulationScore + generalOverviewScore;
+
+            String finalReportAnalysisOutput = geminiApiClient.generateFinalReport(
+                    competitionAnalysisJson,
+                    accessibilityAnalysisJson,
+                    floatingPopulationAnalysisJson,
+                    genearlOverviewGeminiDto,
+                    address,
+                    categoryCode,
+                    pyeong,
+                    userDetail,
+                    competitionScore,
+                    accessibilityScore,
+                    floatingPopulationScore,
+                    generalOverviewScore,
+                    totalScore
+            );
 
             FinalScore finalScore = FinalScore.builder()
                     .competitionScore(competitionScore)
                     .accessibilityScore(accessibilityScore)
+                    .floatingPopulationScore(floatingPopulationScore)
+                    .overallReviewScore(generalOverviewScore)
                     .totalScore(totalScore)
                     .build();
 
@@ -96,6 +140,14 @@ public class ReportService {
                     .user(writer)
                     .competitorSummary(competitionNode.path("summary").asText())
                     .accessibilityAnalysis(accessibilityAnalysis)
+                    .floatingPopulationAnalysis(floatingPopulationAnalysis)
+                    .overallReview(overallReview)
+                    .averageCleannessScore(communityAllReviewResponseDto.getClean())
+                    .averageCommunityScore(communityAllReviewResponseDto.getTotalRate())
+                    .averagePopulationScore(communityAllReviewResponseDto.getPeople())
+                    .averageReachabilityScore(communityAllReviewResponseDto.getAccessibility())
+                    .averageRentFeeScore(communityAllReviewResponseDto.getRentFee())
+                    .finalReportSummary(finalReportAnalysisOutput)
                     .finalScore(finalScore)
                     .build();
 

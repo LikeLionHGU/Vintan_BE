@@ -8,7 +8,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class CategoryRateDto {
     private Integer cleanness;  // 청결도
     private Integer people;     // 유동인구
