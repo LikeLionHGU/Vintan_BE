@@ -9,7 +9,7 @@
 
 ### 1. [POST] /register
 - **설명:** 신규 유저를 등록합니다.
-- **Request Body:**
+- **Request Body:**by
 ```json
 {
     "id": "exampleUser",
@@ -37,7 +37,7 @@
 ```
 
 ### 3. [POST] /login
-- **설명:** 사용자가 시스템에 로그인합니다.
+- **설명:** 사용자가 시스템에 로그인하고 세션을 생성합니다.
 - **Request Body:**
 ```json
 {
@@ -88,6 +88,16 @@
     "userDetail": "1층 코너 자리 원해요"
 }
 ```
+- **Response Body (Success):**
+```json
+{
+    "reportId": 1
+}
+```
+
+### 2. [GET] /{reportId}
+- **설명:** 생성된 AI 상권 분석 보고서의 상세 내용을 조회합니다.
+- **Path Variable:** `reportId` (Long) - 보고서 ID
 - **Response Body (Success):**
 ```json
 {
