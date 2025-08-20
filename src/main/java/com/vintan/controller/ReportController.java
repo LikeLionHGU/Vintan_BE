@@ -2,6 +2,7 @@ package com.vintan.controller;
 
 import com.vintan.domain.Report;
 import com.vintan.dto.request.ai.ReportRequestDto;
+import com.vintan.dto.response.ai.ReportPostDto;
 import com.vintan.dto.response.ai.ReportResponseDto;
 import com.vintan.dto.response.user.SessionUserDto;
 import com.vintan.service.ReportService;
@@ -19,7 +20,7 @@ public class ReportController {
     private final ReportService reportService;
 
     @PostMapping("/generate/{regionId}")
-    public ResponseEntity<ReportResponseDto> generateReport(
+    public ResponseEntity<ReportPostDto> generateReport(
             @RequestBody ReportRequestDto requestDto,
             @PathVariable Long regionId,
             HttpServletRequest request) {
@@ -31,14 +32,30 @@ public class ReportController {
         SessionUserDto sessionUser = (SessionUserDto) session.getAttribute("loggedInUser");
         String userId = sessionUser.getId();
 
+        ReportPostDto reportPostDto = new ReportPostDto();
+
+        try {
+
+
         Report reportEntity = reportService.generateFullReport(
                 requestDto,
                 userId,
                 regionId
         );
 
-        ReportResponseDto responseDto = new ReportResponseDto(reportEntity);
+        reportPostDto.setReportId(reportEntity.getId());
 
+        return ResponseEntity.ok(reportPostDto);
+        } catch (Exception e) {
+            e.printStackTrace();
+            reportPostDto.setReportId(0L);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(reportPostDto);
+        }
+    }
+
+    @GetMapping("/{reportId}")
+    public ResponseEntity<ReportResponseDto> getReport(@PathVariable Long reportId) {
+        ReportResponseDto responseDto = new ReportResponseDto(reportService.getReport(reportId));
         return ResponseEntity.ok(responseDto);
     }
 }
