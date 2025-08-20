@@ -139,10 +139,10 @@ public class GeminiApiClient {
                             "응답은 반드시 다음 JSON 형식에 맞춰서 다른 말 없이 데이터만 반환해줘:\n" +
                             "```json\n" +
                             "{\n" +
-                            "  \"summary\": \"최종 요약 내용\",\n" +
+                            "  \"review_summary\": \"최종 요약 내용\",\n" +
                             "  \"positive\": \"커뮤니티 전반적인 긍정적인 분석 내용\",\n" +
                             "  \"negative\": \"커뮤니티 부정적인 긍정적인 분석 내용\",\n" +
-                            "  \"score\": 25점_만점의_점수\n" +
+                            "  \"review_score\": 25점_만점의_점수\n" +
                             "}\n" +
                             "```",
                     communityDataAsJson
