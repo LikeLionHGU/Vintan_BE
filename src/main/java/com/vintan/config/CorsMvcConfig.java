@@ -10,7 +10,7 @@ public class CorsMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("https://vintan.netlify.app/", "http://localhost:3000/")
+                .allowedOrigins("https://vintan.netlify.app/", "http://localhost:3000/", "https://vin-tan.web.app/")
                 .allowedMethods("*")
                 .allowCredentials(true)
                 .allowCredentials(true);
