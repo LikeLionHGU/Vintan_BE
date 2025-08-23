@@ -20,6 +20,7 @@ public class ReportResponseDto {
     private GeneralOverviewReportDto generalOverviewReport;
     private String finalReportReviewSummary;
     private String addressName;
+    private int postCount;
 
     public ReportResponseDto(Report report) {
         this.id = report.getId();
@@ -35,5 +36,6 @@ public class ReportResponseDto {
                 .collect(Collectors.toList());
         this.competitorSummary = report.getCompetitorSummary();
         this.addressName = report.getAddressName();
+        this.postCount = report.getPostCount();
     }
 }

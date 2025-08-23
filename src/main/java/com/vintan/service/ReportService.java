@@ -94,6 +94,7 @@ public class ReportService {
         GeneralOverviewGeminiDto genearlOverviewGeminiDto = geminiApiClient.generateOverallReview(regionId);
         String generalOverviewJson = genearlOverviewGeminiDto.getOutput();
         CommunityAllReviewResponseDto communityAllReviewResponseDto = genearlOverviewGeminiDto.getCommunityAllReviewResponseDto();
+        int postReportCount = genearlOverviewGeminiDto.getPostCount();
 
         try {
             // --- 4. Gemini 응답 파싱 및 엔티티 조립 ---
@@ -155,6 +156,7 @@ public class ReportService {
                     .finalReportSummary(finalReportAnalysisOutput)
                     .finalScore(finalScore)
                     .addressName(requestDto.getAddressName())
+                    .postCount(postReportCount)
                     .build();
 
             // Competitor 엔티티들 생성 및 Report에 추가
