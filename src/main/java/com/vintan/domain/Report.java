@@ -77,6 +77,8 @@ public class Report {
 
     private String addressName;
 
+    private int postCount;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime regDate;

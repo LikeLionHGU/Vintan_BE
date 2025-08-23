@@ -121,6 +121,7 @@ public class GeminiApiClient {
 
     public GeneralOverviewGeminiDto generateOverallReview(Long regionId) {
         CommunityAllReviewResponseDto responseDto = blindCommunityPostService.getAllPost(regionId);
+        int postCount = responseDto.getBlind().size();
 
         try {
             // 1. responseDto 객체를 JSON 문자열로 변환합니다.
@@ -148,8 +149,7 @@ public class GeminiApiClient {
                     communityDataAsJson
             );
             String geminiOutput = callGeminiApi(prompt, "접근성 분석 생성에 실패했습니다.");
-            return new GeneralOverviewGeminiDto(geminiOutput, responseDto);
-
+            return new GeneralOverviewGeminiDto(geminiOutput, responseDto, postCount);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("커뮤니티 데이터 JSON 변환에 실패했습니다.", e);
         }
