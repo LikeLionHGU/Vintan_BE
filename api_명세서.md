@@ -83,7 +83,7 @@
 ```json
 {
     "address": "포항시 북구 장량로 20",
-    "categoryCode": "CE7",
+    "categoryCode": "카페",
     "pyeong": 15.5,
     "userDetail": "1층 코너 자리 원해요"
 }
