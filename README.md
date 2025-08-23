@@ -14,7 +14,6 @@ https://vin-tan.web.app/
     <img src="https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=java&logoColor=white">
     <img src="https://img.shields.io/badge/Gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white">
     <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white">
-    <img src="https://img.shields.io/badge/Github%20Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white">
 </p>
 
 **Vintan**은 예비 창업자들이 데이터에 기반한 합리적인 의사결정을 내릴 수 있도록 돕는 AI 상권 분석 플랫폼입니다. 멋쟁이사자처럼 13기 중앙 해커톤에서 **한동대학교 멋쟁이사자처럼 '먹짱'팀**이 개발했습니다. 이 저장소는 Vintan의 백엔드 서버입니다.
