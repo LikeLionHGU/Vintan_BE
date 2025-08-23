@@ -1,9 +1,9 @@
 
 # Vintan (빈땅) - AI 상권 분석 플랫폼 (Backend) 🚀
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/hyeokkiyaa/Vintan_FE/main/public/logo.png" alt="Vintan Logo" width="200"/>
-</p>
+<br>
+https://vin-tan.web.app/
+</br>
 
 <p align="center">
   <strong>"사장님, 그 가게 정말 괜찮을까요?" Vintan이 AI로 미리 알려드립니다.</strong>
@@ -106,7 +106,7 @@ java -jar build/libs/Vintan-0.0.1-SNAPSHOT.jar
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/hyeokkiyaa"><img src="https://avatars.githubusercontent.com/u/80053442?v=4" width="100px;" alt="hyeokkiyaa"/><br /><sub><b>hyeokkiyaa</b></sub></a><br /></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/hyeokkiyaa"><img src="https://avatars.githubusercontent.com/u/122941953?v=4" width="100px;" alt="hyeokkiyaa"/><br /><sub><b>hyeokkiyaa</b></sub></a><br /></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/HaeseokPark"><img src="https://avatars.githubusercontent.com/u/122941953?v=4" width="100px;" alt="HaeseokPark"/><br /><sub><b>HaeseokPark</b></sub></a><br /></td>
     </tr>
   </tbody>
