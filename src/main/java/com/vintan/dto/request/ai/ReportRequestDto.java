@@ -8,4 +8,5 @@ public class ReportRequestDto {
     private String categoryCode;
     private double pyeong;
     private String userDetail;
+    private String addressName;
 }

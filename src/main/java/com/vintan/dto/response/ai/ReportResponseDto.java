@@ -19,6 +19,7 @@ public class ReportResponseDto {
     private FloatingPopulationAnalysisDto floatingPopulationAnalysis;
     private GeneralOverviewReportDto generalOverviewReport;
     private String finalReportReviewSummary;
+    private String addressName;
 
     public ReportResponseDto(Report report) {
         this.id = report.getId();
@@ -33,5 +34,6 @@ public class ReportResponseDto {
                 .map(CompetitorResponseDto::new)
                 .collect(Collectors.toList());
         this.competitorSummary = report.getCompetitorSummary();
+        this.addressName = report.getAddressName();
     }
 }

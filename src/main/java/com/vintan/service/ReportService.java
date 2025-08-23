@@ -154,6 +154,7 @@ public class ReportService {
                     .averageRentFeeScore(communityAllReviewResponseDto.getRentFee())
                     .finalReportSummary(finalReportAnalysisOutput)
                     .finalScore(finalScore)
+                    .addressName(requestDto.getAddressName())
                     .build();
 
             // Competitor 엔티티들 생성 및 Report에 추가

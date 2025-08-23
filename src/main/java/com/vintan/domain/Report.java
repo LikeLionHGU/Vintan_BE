@@ -75,6 +75,8 @@ public class Report {
     @Lob
     private String competitorSummary;
 
+    private String addressName;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime regDate;
