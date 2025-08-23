@@ -5,10 +5,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * DTO for user login request.
+ * Contains the user ID and password.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
 public class UserLoginRequestDto {
-    private String id;
-    private String password;
+
+    @NotBlank(message = "User ID is required")
+    private String id; // User identifier
+
+    @NotBlank(message = "Password is required")
+    private String password; // User password
 }

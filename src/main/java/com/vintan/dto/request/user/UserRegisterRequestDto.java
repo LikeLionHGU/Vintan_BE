@@ -6,26 +6,28 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * DTO for user registration request.
+ * Contains user credentials and optional business information.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
 public class UserRegisterRequestDto {
 
-    @NotBlank(message = "id is compulsory")
-    private String id;
+    @NotBlank(message = "User ID is required")
+    private String id; // Unique user identifier
 
-    @NotBlank(message = "name is compulsory")
-    private String name;
+    @NotBlank(message = "Name is required")
+    private String name; // User's full name
 
-    @NotBlank(message = "password is compulsory")
-    // @Size(min = 8, message = "비밀번호는 8자 이상이어야 합니다.") 이렇게 설정가능
-    private String password;
+    @NotBlank(message = "Password is required")
+    // You can add @Size(min = 8, message = "Password must be at least 8 characters") if needed
+    private String password; // User's password
 
-    @NotBlank(message = "email is compulsory")
-    @Email(message = "wrong email format")
-    private String email;
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
+    private String email; // User's email
 
-    private int businessNumber;
-
-
+    private int businessNumber; // Optional business number
 }

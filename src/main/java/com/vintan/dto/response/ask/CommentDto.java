@@ -1,20 +1,39 @@
 package com.vintan.dto.response.ask;
 
-// 댓글 DTO
 import com.vintan.domain.QnaComment;
 import lombok.*;
 import java.time.format.DateTimeFormatter;
 
-@Getter @Setter @Builder
-@NoArgsConstructor @AllArgsConstructor
+/**
+ * DTO representing a single comment in a Q&A post.
+ */
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CommentDto {
-    private Long id;        // 댓글 고유 ID (Long 권장)
-    private String userId;  // 댓글 작성자 ID
-    private String content; // 댓글 내용
-    private String date;    // yyyy.MM.dd
+
+    /** Unique ID of the comment */
+    private Long id;
+
+    /** ID of the user who wrote the comment */
+    private String userId;
+
+    /** Content of the comment */
+    private String content;
+
+    /** Date of the comment in yyyy.MM.dd format */
+    private String date;
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
+    /**
+     * Converts a QnaComment entity to a CommentDto.
+     *
+     * @param c the QnaComment entity
+     * @return the CommentDto
+     */
     public static CommentDto from(QnaComment c) {
         return CommentDto.builder()
                 .id(c.getId())

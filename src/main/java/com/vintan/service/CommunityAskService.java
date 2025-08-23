@@ -1,11 +1,10 @@
 package com.vintan.service;
 
-
 import com.vintan.domain.QnaPost;
 import com.vintan.domain.QnaComment;
 import com.vintan.domain.User;
 import com.vintan.dto.request.ask.CreateAskRequestDto;
-import com.vintan.dto.request.ask.CreateCommentRequestDto;
+import com.vintan.dto.request.comment.CreateCommentRequestDto;
 import com.vintan.dto.response.ask.AskDetailResponseDto;
 import com.vintan.dto.response.ask.AskDto;
 import com.vintan.dto.response.ask.AskResponseDto;
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Field;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -32,102 +30,86 @@ public class CommunityAskService {
     private final QnaCommentRepository qnaCommentRepository;
     private final UserRepository userRepository;
 
-    // ✅ UserController와 동일하게 맞춤
     private static final String SESSION_USER = "loggedInUser";
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
-    private static final DateTimeFormatter DATE_FMT =
-            DateTimeFormatter.ofPattern("yyyy.MM.dd");
-
-    /** 대표화면 목록 */
+    /** ----------------------------- List of Questions ----------------------------- */
     @Transactional(readOnly = true)
     public AskResponseDto getAskList() {
-        // N+1 완화 위해 @EntityGraph가 QnaPostRepository.findAllByOrderByPostIdDesc()에 붙어있다고 가정
+        // Use @EntityGraph in repository to prevent N+1 queries
         List<QnaPost> posts = qnaPostRepository.findAllByOrderByPostIdDesc();
 
+        // Map posts to DTOs
         List<AskDto> askList = posts.stream()
-                .map(p -> AskDto.builder()
-                        .id(p.getPostId())
-                        .title(p.getTitle())
-                        .userId(p.getUser().getId())
-                        .numberOfComments(p.getComments() == null ? 0 : p.getComments().size())
-                        .date(p.getCreatedAt() == null ? null : p.getCreatedAt().format(DATE_FMT))
-                        .build())
+                .map(AskDto::from)
                 .toList();
 
-        return AskResponseDto.builder().askList(askList).build();
+        return AskResponseDto.builder()
+                .askList(askList)
+                .build();
     }
 
-    /** 상세보기 */
+    /** ----------------------------- Question Detail ----------------------------- */
     @Transactional(readOnly = true)
     public AskDetailResponseDto getAskDetail(Long postId) {
+        // Fetch post with comments using fetch join
         QnaPost post = qnaPostRepository.findByIdWithComments(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("Post does not exist."));
 
-        var commentsSorted = post.getComments()
+        // Sort comments by ID
+        List<QnaComment> sortedComments = post.getComments()
                 .stream()
                 .sorted(Comparator.comparing(QnaComment::getId))
                 .toList();
 
-        return AskDetailResponseDto.from(post, commentsSorted);
+        return AskDetailResponseDto.from(post, sortedComments);
     }
 
-    /** 질문 글 작성 */
+    /** ----------------------------- Create Question ----------------------------- */
     @Transactional
     public SimpleSuccessResponseDto createAsk(HttpSession session, CreateAskRequestDto req) {
-        try {
-            // ✅ 세션에서 SessionUserDto 읽기
-            SessionUserDto sessionUser = (SessionUserDto) session.getAttribute(SESSION_USER);
-            if (sessionUser == null) return resp(0);
+        // Get logged-in user from session
+        SessionUserDto sessionUser = (SessionUserDto) session.getAttribute(SESSION_USER);
+        if (sessionUser == null) return SimpleSuccessResponseDto.fail();
 
-            User user = userRepository.findById(sessionUser.getId()).orElse(null);
-            if (user == null) return resp(0);
-
-            QnaPost post = QnaPost.builder()
-                    .user(user)
-                    .title(req.getTitle())
-                    .content(req.getContent())
-                    .build();
-
-            qnaPostRepository.save(post);
-            return resp(1);
-        } catch (Exception e) {
-            return resp(0);
-        }
-    }
-
-
-    /** 댓글 작성 */
-    @Transactional
-    public SimpleSuccessResponseDto createComment(Long postId, HttpSession session, CreateCommentRequestDto req) {
-        // 1) 사전 가드 (세션, 파라미터, 존재성 등)
-        SessionUserDto u = (SessionUserDto) session.getAttribute("loggedInUser");
-        if (u == null) return SimpleSuccessResponseDto.fail();
-        var user = userRepository.findById(u.getId()).orElse(null);
+        // Fetch user entity
+        User user = userRepository.findById(sessionUser.getId()).orElse(null);
         if (user == null) return SimpleSuccessResponseDto.fail();
-        var post = qnaPostRepository.findById(postId).orElse(null);
-        if (post == null) return SimpleSuccessResponseDto.fail();
-        if (req == null || req.getComment() == null || req.getComment().isBlank()) return SimpleSuccessResponseDto.fail();
 
-        // 2) DB 처리 (예외는 던지게 둠)
-        qnaCommentRepository.save(
-                QnaComment.builder()
-                        .post(post)
-                        .user(user)
-                        .text(req.getComment())
-                        .textTime(java.time.LocalDateTime.now())
-                        .build()
-        );
+        // Save new post
+        QnaPost post = QnaPost.builder()
+                .user(user)
+                .title(req.getTitle())
+                .content(req.getContent())
+                .build();
+
+        qnaPostRepository.save(post);
         return SimpleSuccessResponseDto.ok();
     }
 
-    /** SimpleSuccessResponseDto(isSuccess) 값 셋팅 (DTO에 세터/생성자 없을 때) */
-    private SimpleSuccessResponseDto resp(int v) {
-        SimpleSuccessResponseDto dto = new SimpleSuccessResponseDto();
-        try {
-            Field f = SimpleSuccessResponseDto.class.getDeclaredField("isSuccess");
-            f.setAccessible(true);
-            f.setInt(dto, v);
-        } catch (Exception ignored) { }
-        return dto;
+    /** ----------------------------- Create Comment ----------------------------- */
+    @Transactional
+    public SimpleSuccessResponseDto createComment(Long postId, HttpSession session, CreateCommentRequestDto req) {
+        // Validate session and request
+        SessionUserDto sessionUser = (SessionUserDto) session.getAttribute(SESSION_USER);
+        if (sessionUser == null || req == null || req.getComment().isBlank()) {
+            return SimpleSuccessResponseDto.fail();
+        }
+
+        // Fetch user and post entities
+        User user = userRepository.findById(sessionUser.getId()).orElse(null);
+        QnaPost post = qnaPostRepository.findById(postId).orElse(null);
+        if (user == null || post == null) return SimpleSuccessResponseDto.fail();
+
+        // Save comment
+        QnaComment comment = QnaComment.builder()
+                .post(post)
+                .user(user)
+                .text(req.getComment())
+                .textTime(java.time.LocalDateTime.now())
+                .build();
+
+        qnaCommentRepository.save(comment);
+        return SimpleSuccessResponseDto.ok();
     }
 }

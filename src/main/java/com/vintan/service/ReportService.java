@@ -2,24 +2,21 @@ package com.vintan.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vintan.component.GeminiApiClient;
-import com.vintan.component.KakaoMapClient;
-import com.vintan.component.PohangBusApiClient;
+import com.vintan.component.gemini.GeminiApiClient;
+import com.vintan.component.kakaomap.KakaoMapClient;
+import com.vintan.component.pohangbus.PohangBusApiClient;
 import com.vintan.controller.converter.CategoryConverter;
-import com.vintan.domain.BlindCommunityPost;
-import com.vintan.domain.Competitor;
-import com.vintan.domain.Report;
-import com.vintan.domain.User;
-import com.vintan.dto.aiReport.CompanyDto;
+import com.vintan.domain.*;
+import com.vintan.dto.request.ai.kakao.CompanyDto;
 import com.vintan.dto.request.ai.ReportRequestDto;
 import com.vintan.dto.response.ai.GeneralOverviewGeminiDto;
-import com.vintan.dto.response.ai.KakaoAddressResponse;
+import com.vintan.dto.response.ai.record.KakaoAddressResponse;
 import com.vintan.dto.response.ai.KakaoPlaceDto;
 import com.vintan.dto.response.community.CommunityAllReviewResponseDto;
-import com.vintan.embedded.AccessibilityAnalysis;
-import com.vintan.embedded.FinalScore;
-import com.vintan.embedded.FloatingPopulationAnalysis;
-import com.vintan.embedded.OverallReview;
+import com.vintan.domain.embedded.AccessibilityAnalysis;
+import com.vintan.domain.embedded.FinalScore;
+import com.vintan.domain.embedded.FloatingPopulationAnalysis;
+import com.vintan.domain.embedded.OverallReview;
 import com.vintan.repository.BlindCommunityPostRepository;
 import com.vintan.repository.ReportRepository;
 import com.vintan.repository.UserRepository;
@@ -42,10 +39,14 @@ public class ReportService {
     private final ObjectMapper objectMapper;
     private final BlindCommunityPostRepository blindCommunityPostRepository;
 
+    /** Get existing report by ID */
     public Report getReport(Long reportId) {
-       return reportRepository.getReportById(reportId);
+        return reportRepository.getReportById(reportId);
     }
 
+    /**
+     * Generate a full report including competitor, accessibility, floating population, and overall analysis
+     */
     @Transactional
     public Report generateFullReport(ReportRequestDto requestDto, String userId, Long regionId) {
         String address = requestDto.getAddress();
@@ -53,73 +54,72 @@ public class ReportService {
         double pyeong = requestDto.getPyeong();
         String userDetail = requestDto.getUserDetail();
 
-        // --- 1. 사전 준비: 사용자 조회 및 주소->좌표 변환 ---
+        // --- 1. Preprocessing: fetch user & convert address to coordinates ---
         User writer = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
         KakaoAddressResponse.Document coordinate = kakaoMapClient.getCoordinatesFromAddress(address);
         if (coordinate == null) {
-            throw new RuntimeException("주소의 좌표를 찾을 수 없습니다.");
+            throw new RuntimeException("Coordinates not found for the given address.");
         }
         double latitude = Double.parseDouble(coordinate.latitude());
         double longitude = Double.parseDouble(coordinate.longitude());
 
-        // --- 2. 데이터 수집: 각 API 클라이언트 호출 ---
-        List<KakaoPlaceDto> places = kakaoMapClient.searchNearbyBusinesses(address, categoryCode);
+        // --- 2. Data collection from external APIs ---
+        List<KakaoPlaceDto> nearbyPlaces = kakaoMapClient.searchNearbyBusinesses(address, categoryCode);
         List<String> landmarks = kakaoMapClient.findPlaceNamesByCategory(longitude, latitude, "AT4");
         List<String> stations = kakaoMapClient.findPlaceNamesByCategory(longitude, latitude, "SW8");
         List<String> busRoutes = pohangBusApiClient.getBusRoutesNear(latitude, longitude);
         List<BlindCommunityPost> posts = blindCommunityPostRepository.findByRegionNo(regionId);
 
-        // --- 3. Gemini 분석 (두 가지를 한 번에 또는 순차적으로 진행) ---
-        // 여기서는 개별 요약 -> 경쟁 분석 -> 접근성 분석 순으로 진행
-
-        // 3-1. 개별 경쟁업체 설명 생성
+        // --- 3. Gemini analysis ---
+        // 3-1. Generate individual competitor descriptions
         List<CompanyDto> competitorsWithDesc = new ArrayList<>();
-        for (KakaoPlaceDto place : places) {
+        for (KakaoPlaceDto place : nearbyPlaces) {
             String description = geminiApiClient.generateCompanyDescription(place);
             competitorsWithDesc.add(new CompanyDto(place.getName(), place.getAddress(), description));
             try { Thread.sleep(1000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         }
 
-        // 3-2. 경쟁 강도 분석
+        // 3-2. Competition analysis
         String competitionAnalysisJson = geminiApiClient.analyzeCompetition(competitorsWithDesc);
 
-        // 3-3. 접근성 분석
+        // 3-3. Accessibility analysis
         String accessibilityAnalysisJson = geminiApiClient.generateAccessibilityAnalysis(address, landmarks, stations, busRoutes);
 
-        // 3-4. 유동인구 분석
+        // 3-4. Floating population analysis
         String floatingPopulationAnalysisJson = geminiApiClient.generatefloatingPopulationAnalysisJson(address);
 
-        GeneralOverviewGeminiDto genearlOverviewGeminiDto = geminiApiClient.generateOverallReview(regionId);
-        String generalOverviewJson = genearlOverviewGeminiDto.getOutput();
-        CommunityAllReviewResponseDto communityAllReviewResponseDto = genearlOverviewGeminiDto.getCommunityAllReviewResponseDto();
-        int postReportCount = genearlOverviewGeminiDto.getPostCount();
+        // 3-5. Overall review analysis
+        GeneralOverviewGeminiDto generalOverviewGeminiDto = geminiApiClient.generateOverallReview(regionId);
+        String generalOverviewJson = generalOverviewGeminiDto.getOutput();
+        CommunityAllReviewResponseDto communityAllReviewResponseDto = generalOverviewGeminiDto.getCommunityAllReviewResponseDto();
+        int postReportCount = generalOverviewGeminiDto.getPostCount();
 
         try {
-            // --- 4. Gemini 응답 파싱 및 엔티티 조립 ---
+            // --- 4. Parse JSON responses and assemble entities ---
             JsonNode competitionNode = objectMapper.readTree(competitionAnalysisJson);
             JsonNode accessibilityNode = objectMapper.readTree(accessibilityAnalysisJson);
             JsonNode floatingPopulationNode = objectMapper.readTree(floatingPopulationAnalysisJson);
             JsonNode generalOverviewNode = objectMapper.readTree(generalOverviewJson);
 
-            // 각 분석 결과 객체 생성
             AccessibilityAnalysis accessibilityAnalysis = objectMapper.treeToValue(accessibilityNode, AccessibilityAnalysis.class);
             FloatingPopulationAnalysis floatingPopulationAnalysis = objectMapper.treeToValue(floatingPopulationNode, FloatingPopulationAnalysis.class);
             OverallReview overallReview = objectMapper.treeToValue(generalOverviewNode, OverallReview.class);
 
-            // FinalScore 객체 생성
+            // Calculate scores
             int competitionScore = competitionNode.path("score").asInt();
             int accessibilityScore = accessibilityAnalysis.getScore();
             int floatingPopulationScore = floatingPopulationNode.path("score").asInt();
             int generalOverviewScore = generalOverviewNode.path("review_score").asInt();
             int totalScore = competitionScore + accessibilityScore + floatingPopulationScore + generalOverviewScore;
 
+            // Generate final report text
             String finalReportAnalysisOutput = geminiApiClient.generateFinalReport(
                     competitionAnalysisJson,
                     accessibilityAnalysisJson,
                     floatingPopulationAnalysisJson,
-                    genearlOverviewGeminiDto,
+                    generalOverviewGeminiDto,
                     address,
                     categoryCode,
                     pyeong,
@@ -131,6 +131,7 @@ public class ReportService {
                     totalScore
             );
 
+            // Create FinalScore entity
             FinalScore finalScore = FinalScore.builder()
                     .competitionScore(competitionScore)
                     .accessibilityScore(accessibilityScore)
@@ -139,7 +140,7 @@ public class ReportService {
                     .totalScore(totalScore)
                     .build();
 
-            // Report 엔티티 최종 생성
+            // Assemble Report entity
             Report newReport = Report.builder()
                     .address(address)
                     .category(categoryCode)
@@ -159,7 +160,7 @@ public class ReportService {
                     .postCount(postReportCount)
                     .build();
 
-            // Competitor 엔티티들 생성 및 Report에 추가
+            // Create Competitor entities and attach to Report
             for (CompanyDto compDto : competitorsWithDesc) {
                 Competitor competitor = Competitor.builder()
                         .name(compDto.getName())
@@ -169,12 +170,12 @@ public class ReportService {
                 newReport.addCompetitor(competitor);
             }
 
-            // --- 5. DB에 최종 저장 ---
+            // --- 5. Save the final report in DB ---
             return reportRepository.save(newReport);
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("Gemini 응답 파싱 또는 리포트 생성에 실패했습니다.");
+            throw new RuntimeException("Failed to parse Gemini response or generate report.");
         }
     }
 }
