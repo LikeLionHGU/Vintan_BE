@@ -86,6 +86,7 @@
     "categoryCode": "카페",
     "pyeong": 15.5,
     "userDetail": "1층 코너 자리 원해요"
+    "addressName": "포항시 양덕동"
 }
 ```
 - **Response Body (Success):**
@@ -146,7 +147,8 @@
         "averageReachabilityScore": 4.7,
         "averageRentFeeScore": 3.9
     },
-    "finalReportReviewSummary": "종합적으로 볼 때, 해당 입지는 카페 창업에 매우 유리한 조건을 갖추고 있습니다."
+    "finalReportReviewSummary": "종합적으로 볼 때, 해당 입지는 카페 창업에 매우 유리한 조건을 갖추고 있습니다.",
+    "addressName": "포항시 양덕동"
 }
 ```
 
