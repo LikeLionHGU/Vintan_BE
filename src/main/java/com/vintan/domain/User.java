@@ -10,9 +10,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entity representing a user of the platform.
+ * Contains personal information, business data, and relationships to posts and reports.
+ */
 @Entity
-@Setter
 @Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -21,33 +25,37 @@ public class User {
 
     @Id
     @Column(name = "user_id")
-    private String id;
+    private String id; // Primary key, user ID
 
-    private String name;
-    private String password;
-    private String email;
-    private int businessNumber;
+    private String name; // User's display name
+    private String password; // Encrypted password
+    private String email; // User email
+    private int businessNumber; // Business registration number; 0 if not a business user
 
     @Column(columnDefinition = "int default 0")
-    private int point;
+    private int point; // User points for rewards or gamification
 
+    // One-to-one relationship with a BlindCommunityPost
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private BlindCommunityPost blindCommunityPost;
 
+    // One-to-many relationship with reports authored by the user
     @OneToMany(mappedBy = "user")
     @Builder.Default
     private List<Report> reports = new ArrayList<>();
 
+    // One-to-many relationship with Q&A comments authored by the user
     @OneToMany(mappedBy = "user")
     @Builder.Default
     private List<QnaComment> qnaComments = new ArrayList<>();
 
+    // One-to-many relationship with Q&A posts authored by the user
     @OneToMany(mappedBy = "user")
     @Builder.Default
     private List<QnaPost> qnaPosts = new ArrayList<>();
 
     @CreatedDate
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.mm.dd HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.MM.dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(updatable = false)
-    private LocalDateTime regDate;
+    private LocalDateTime regDate; // Timestamp of user registration
 }

@@ -1,8 +1,7 @@
-
 package com.vintan.service;
+
 import com.vintan.domain.*;
 import com.vintan.dto.response.community.CategoryRateDto;
-
 import com.vintan.dto.response.mypage.AiReportMyPageDto;
 import com.vintan.dto.response.mypage.AskMyPageDto;
 import com.vintan.dto.response.mypage.BlindMyPageDto;
@@ -24,56 +23,63 @@ public class MyPageQueryService {
     private final ReportRepository reportRepository;
     private final BlindCommunityPostRepository blindCommunityPostRepository;
 
-    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy.MM.dd"); // 반드시 MM
+    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
+    /** ----------------------------- Get MyPage Info ----------------------------- */
     @Transactional(readOnly = true)
     public MyPageResponse getMyPage(String userId) {
-        User u = userRepository.findById(userId).orElse(null);
-        if (u == null) return null;
+        // Fetch user
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) return null;
 
-        // Blind 섹션 (없으면 null)
-        BlindMyPageDto blindDto = buildBlind(u);
+        // Build Blind section (nullable)
+        BlindMyPageDto blindDto = buildBlind(user);
 
-        // Ask: 내 QnA 글 상위 3개
-        List<AskMyPageDto> asks = qnaPostRepository.findTop3ByUser_IdOrderByCreatedAtDesc(u.getId())
+        // Build Ask section: top 3 QnA posts
+        List<AskMyPageDto> asks = qnaPostRepository.findTop3ByUser_IdOrderByCreatedAtDesc(user.getId())
                 .stream()
                 .map(p -> AskMyPageDto.builder()
-                        .id(u.getId()) // 명세: 사용자 id
+                        .id(user.getId()) // Per spec: user ID
                         .title(p.getTitle())
                         .countComment(qnaPostRepository.countComments(p.getPostId()))
                         .date(p.getCreatedAt() != null ? p.getCreatedAt().format(FMT) : null)
                         .build())
                 .toList();
 
-        // aiReport: 최근 보고서 + 전체 개수
-        long reportCount = reportRepository.countByUser_Id(u.getId());
-        Report latest = reportRepository.findTop1ByUser_IdOrderByRegDateDesc(u.getId());
-        AiReportMyPageDto aiReport = (latest == null) ? null : AiReportMyPageDto.builder()
-                .id(u.getId())
-                .address(latest.getAddress())
+        // Build AI Report section: latest report + total count
+        long reportCount = reportRepository.countByUser_Id(user.getId());
+        Report latestReport = reportRepository.findTop1ByUser_IdOrderByRegDateDesc(user.getId());
+        AiReportMyPageDto aiReport = (latestReport == null) ? null : AiReportMyPageDto.builder()
+                .id(user.getId())
+                .address(latestReport.getAddress())
                 .reportCount((int) reportCount)
-                .date(latest.getRegDate() != null ? latest.getRegDate().format(FMT) : null)
+                .date(latestReport.getRegDate() != null ? latestReport.getRegDate().format(FMT) : null)
                 .build();
 
+        // Build final response
         return MyPageResponse.builder()
-                .email(u.getEmail())
-                .id(u.getId())
-                .Blind(blindDto)        // 필드명을 명세대로 대문자로 유지하는 경우
-                .Ask(asks)              // 동일
-                .name(u.getName())
-                .point(u.getPoint())
-                .businessNumber(u.getBusinessNumber())
+                .email(user.getEmail())
+                .id(user.getId())
+                .blind(blindDto)
+                .ask(asks)
+                .name(user.getName())
+                .point(user.getPoint())
+                .businessNumber(user.getBusinessNumber())
                 .aiReport(aiReport)
                 .build();
     }
 
-    private BlindMyPageDto buildBlind(User u) {
-        BlindCommunityPost b = blindCommunityPostRepository.findByUser_Id(u.getId());
-        if (b == null) return null;
+    /** ----------------------------- Build Blind Section ----------------------------- */
+    private BlindMyPageDto buildBlind(User user) {
+        BlindCommunityPost post = blindCommunityPostRepository.findByUser_Id(user.getId());
+        if (post == null) return null;
 
-        CategoryRateDto crDto = (b.getCategoryRate() != null) ? new CategoryRateDto(b.getCategoryRate()) : null;
+        // Map CategoryRate
+        CategoryRateDto crDto = (post.getCategoryRate() != null)
+                ? new CategoryRateDto(post.getCategoryRate())
+                : null;
 
-        // totalRate: 엔티티에 필드가 없으므로 평균 산출
+        // Calculate total rate if all category values exist
         Double totalRate = null;
         if (crDto != null &&
                 crDto.getCleanness() != null &&
@@ -83,15 +89,16 @@ public class MyPageQueryService {
             totalRate = (crDto.getCleanness() + crDto.getPeople() + crDto.getReach() + crDto.getRentFee()) / 4.0;
         }
 
+        // Build Blind DTO
         return BlindMyPageDto.builder()
-                .id(b.getId())
+                .id(post.getId())
                 .totalRate(totalRate)
-                .title(b.getTitle())
-                .address(b.getAddress())
-                .date(b.getRegDate() != null ? b.getRegDate().format(FMT) : null)
-                .categoryRate(crDto) // (cleanness, people, reach, rentFee)
-                .positive(b.getPositive())
-                .negative(b.getNegative())
+                .title(post.getTitle())
+                .address(post.getAddress())
+                .date(post.getRegDate() != null ? post.getRegDate().format(FMT) : null)
+                .categoryRate(crDto)
+                .positive(post.getPositive())
+                .negative(post.getNegative())
                 .build();
     }
 }

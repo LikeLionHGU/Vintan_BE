@@ -9,13 +9,25 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Repository interface for managing QnaPost entities.
+ * Provides methods to fetch posts with associated comments efficiently.
+ */
 public interface QnaPostRepository extends JpaRepository<QnaPost, Long> {
 
-    // 목록: 게시글 + 댓글을 함께 로딩해서 N+1 방지
+    /**
+     * Fetch all posts with their comments to prevent N+1 problem.
+     * Results are ordered by post ID descending.
+     */
     @EntityGraph(attributePaths = "comments")
     List<QnaPost> findAllByOrderByPostIdDesc();
 
-    // 상세: 특정 게시글 + 댓글 fetch join
+    /**
+     * Fetch a single post by ID along with its comments using a fetch join.
+     *
+     * @param postId ID of the post
+     * @return Optional of QnaPost with comments loaded
+     */
     @Query("""
         select distinct p
         from QnaPost p
@@ -24,10 +36,20 @@ public interface QnaPostRepository extends JpaRepository<QnaPost, Long> {
     """)
     Optional<QnaPost> findByIdWithComments(@Param("postId") Long postId);
 
-    // 마이페이지: 내 질문글 상위 3개
+    /**
+     * Get the top 3 most recent posts for a specific user (for MyPage view).
+     *
+     * @param userId User ID
+     * @return List of QnaPosts
+     */
     List<QnaPost> findTop3ByUser_IdOrderByCreatedAtDesc(String userId);
 
-    // 댓글 수
+    /**
+     * Count the number of comments for a specific post.
+     *
+     * @param postId ID of the post
+     * @return Number of comments
+     */
     @Query("select count(c) from QnaComment c where c.post.postId = :postId")
     int countComments(@Param("postId") Long postId);
 }

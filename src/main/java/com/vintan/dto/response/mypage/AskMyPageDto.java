@@ -1,8 +1,10 @@
-
 package com.vintan.dto.response.mypage;
 
 import lombok.*;
 
+/**
+ * DTO for displaying user's Q&A posts on the MyPage screen.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -10,17 +12,11 @@ import lombok.*;
 @Builder
 public class AskMyPageDto {
 
+    private String id;            // User ID
 
-    private String id;          // 사용자 id (명세 그대로)
+    private String title;         // Question title
 
+    private Integer countComment; // Number of comments
 
-    private String title;       // 질문 제목
-
-
-    private Integer countComment;// -댓글 개수
-
-
-    private String date;        // 작성 날짜(yyyy.mm.dd)
-
-
+    private String date;          // Post creation date (formatted as yyyy.MM.dd)
 }
