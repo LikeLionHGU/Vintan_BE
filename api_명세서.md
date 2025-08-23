@@ -147,6 +147,7 @@
         "averageReachabilityScore": 4.7,
         "averageRentFeeScore": 3.9
     },
+    "postCount" : 3 #위에 있는 generalOverviewReport를 참고 할때 사용됐던 post의 갯수
     "finalReportReviewSummary": "종합적으로 볼 때, 해당 입지는 카페 창업에 매우 유리한 조건을 갖추고 있습니다.",
     "addressName": "포항시 양덕동"
 }
