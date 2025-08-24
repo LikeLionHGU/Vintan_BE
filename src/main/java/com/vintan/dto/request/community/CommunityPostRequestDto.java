@@ -23,6 +23,8 @@ public class CommunityPostRequestDto {
 
     private String address; // Optional address for the post
 
+    private String addressName;
+
     @NotNull(message = "Category rate is required")
     private CategoryRate categoryRate; // Ratings for cleanliness, foot traffic, accessibility, and rent fee
 }

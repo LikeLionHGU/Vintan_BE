@@ -33,6 +33,7 @@ public class BlindCommunityPost {
     private String negative; // Negative feedback content
     private String address;  // Related location/address
     private Long regionNo;   // Region ID to categorize posts
+    private String addressName;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

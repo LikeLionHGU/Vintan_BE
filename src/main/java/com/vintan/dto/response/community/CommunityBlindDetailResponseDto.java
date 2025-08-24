@@ -19,6 +19,7 @@ public class CommunityBlindDetailResponseDto {
     private String address;          // Address of the post
     private String date;             // Post creation date (yyyy.MM.dd)
     private CategoryRateDto categoryRate; // Ratings for cleanliness, people, accessibility, rent fee
+    private String addressName;
 
     public CommunityBlindDetailResponseDto(BlindCommunityPost post) {
         this.title = post.getTitle();

@@ -329,7 +329,8 @@
     "title": "양덕동 카페거리 솔직 후기",
     "positive": "분위기 좋은 카페가 많고 주차가 편리함.",
     "negative": "주말에는 사람이 너무 많아서 자리가 없음.",
-    "address": "포항시 북구 양덕동",
+    "address": "포항시 북구 양덕동 201",
+    "addressName" : "포항시 북구 양덕동",
     "categoryRate": {
         "cleanness": 5,
         "people": 4,
@@ -360,6 +361,7 @@
     "title": "양덕동 카페거리 솔직 후기 (수정)",
     "positive": "분위기 좋은 카페가 많고 주차가 편리함. 평일 방문 추천.",
     "negative": "주말에는 사람이 너무 많아서 자리가 없음.",
+    "addressName" : "포항시 북구 양덕동",
     "categoryRate": {
         "cleanness": 5,
         "people": 3,
@@ -406,7 +408,8 @@
         "title": "양덕동 카페거리 솔직 후기",
         "positive": "분위기 좋은 카페가 많고 주차가 편리함.",
         "negative": "주말에는 사람이 너무 많아서 자리가 없음.",
-        "address": "포항시 북구 양덕동",
+        "address": "포항시 북구 양덕동 201",
+        "addressName" : "포항시 북구 양덕동",
         "date": "2024.08.19",
         "categoryRate": {
             "cleanness": 5,
@@ -433,6 +436,7 @@
     "people": 4.1,
     "accessibility": 4.5,
     "rentFee": 3.8,
+    "addressName" : "포항시 북구 양덕동",
     "blind": [
         {
             "id": 1,

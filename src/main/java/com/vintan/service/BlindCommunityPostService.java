@@ -40,6 +40,7 @@ public class BlindCommunityPostService {
                 .categoryRate(requestDto.getCategoryRate())
                 .regionNo(regionId)
                 .user(writer)
+                .addressName(requestDto.getAddressName())
                 .build();
 
         return blindCommunityPostRepository.save(newPost);
@@ -62,6 +63,7 @@ public class BlindCommunityPostService {
         post.setNegative(requestDto.getNegative());
         post.setAddress(requestDto.getAddress());
         post.setCategoryRate(requestDto.getCategoryRate());
+        post.setAddressName(requestDto.getAddressName());
 
         blindCommunityPostRepository.save(post);
     }
@@ -102,9 +104,12 @@ public class BlindCommunityPostService {
     public CommunityAllReviewResponseDto getAllPost(Long regionId) {
         List<BlindCommunityPost> posts = blindCommunityPostRepository.findByRegionNo(regionId);
 
+
         if (posts.isEmpty()) {
-            return new CommunityAllReviewResponseDto(0.0, 0.0, 0.0, 0.0, 0.0, List.of());
+            return new CommunityAllReviewResponseDto(0.0, 0.0, 0.0, 0.0, 0.0, List.of(), "");
         }
+
+        String addressName = posts.getFirst().getAddressName();
 
         List<BlindSummaryDto> blindSummaries = posts.stream()
                 .map(BlindSummaryDto::new)
@@ -129,7 +134,8 @@ public class BlindCommunityPostService {
                 peopleAvg,
                 accessibilityAvg,
                 rentFeeAvg,
-                blindSummaries
+                blindSummaries,
+                addressName
         );
     }
 }

@@ -17,4 +17,5 @@ public class CommunityAllReviewResponseDto {
     private double accessibility;    // Average accessibility rating
     private double rentFee;          // Average rent/lease rating
     private List<BlindSummaryDto> blind; // List of individual blind community posts
+    private String addressName;
 }
