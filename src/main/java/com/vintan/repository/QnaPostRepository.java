@@ -19,8 +19,8 @@ public interface QnaPostRepository extends JpaRepository<QnaPost, Long> {
      * Fetch all posts with their comments to prevent N+1 problem.
      * Results are ordered by post ID descending.
      */
-    @EntityGraph(attributePaths = "comments")
-    List<QnaPost> findAllByOrderByPostIdDesc();
+    @EntityGraph(attributePaths = {"comments", "user"})
+    List<QnaPost> findAllByRegionIdOrderByPostIdDesc(Long regionId);
 
     /**
      * Fetch a single post by ID along with its comments using a fetch join.
@@ -29,12 +29,14 @@ public interface QnaPostRepository extends JpaRepository<QnaPost, Long> {
      * @return Optional of QnaPost with comments loaded
      */
     @Query("""
-        select distinct p
-        from QnaPost p
-        left join fetch p.comments c
-        where p.postId = :postId
-    """)
-    Optional<QnaPost> findByIdWithComments(@Param("postId") Long postId);
+    select distinct p
+    from QnaPost p
+    left join fetch p.comments c
+    where p.postId = :postId and p.regionId = :regionId""")
+    Optional<QnaPost> findByPostIdAndRegionIdWithComments(
+            @Param("postId") Long postId,
+            @Param("regionId") Long regionId // @Param 어노테이션 추가
+    );
 
     /**
      * Get the top 3 most recent posts for a specific user (for MyPage view).
@@ -52,4 +54,6 @@ public interface QnaPostRepository extends JpaRepository<QnaPost, Long> {
      */
     @Query("select count(c) from QnaComment c where c.post.postId = :postId")
     int countComments(@Param("postId") Long postId);
+
+    Optional<QnaPost> findByPostIdAndRegionId(Long postId, Long regionId);
 }

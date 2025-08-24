@@ -51,7 +51,10 @@ public class Report {
     private AccessibilityAnalysis accessibilityAnalysis; // Accessibility analysis
 
     @Embedded
-    private OverallReview overallReview; // Overall review of the location
+    @AttributeOverrides({
+            @AttributeOverride(name = "summary", column = @Column(name = "overall_summary", length = 1000))
+    })
+    private OverallReview overallReview;
 
     // Average scores across various aspects
     private double averageCommunityScore;

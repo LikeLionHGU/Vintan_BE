@@ -9,7 +9,7 @@
 
 ### 1. [POST] /register
 - **설명:** 신규 유저를 등록합니다.
-- **Request Body:**by
+- **Request Body:**
 ```json
 {
     "id": "exampleUser",
@@ -85,7 +85,7 @@
     "address": "포항시 북구 장량로 20",
     "categoryCode": "카페",
     "pyeong": 15.5,
-    "userDetail": "1층 코너 자리 원해요"
+    "userDetail": "1층 코너 자리 원해요",
     "addressName": "포항시 양덕동"
 }
 ```
@@ -147,7 +147,7 @@
         "averageReachabilityScore": 4.7,
         "averageRentFeeScore": 3.9
     },
-    "postCount" : 3 #위에 있는 generalOverviewReport를 참고 할때 사용됐던 post의 갯수
+    "postCount" : 3,
     "finalReportReviewSummary": "종합적으로 볼 때, 해당 입지는 카페 창업에 매우 유리한 조건을 갖추고 있습니다.",
     "addressName": "포항시 양덕동"
 }
@@ -156,10 +156,11 @@
 ---
 
 ## 💬 Community Ask Controller
-- **Base URL:** `/regions`
+- **Base URL:** `/regions/{regionId}/community`
 
-### 1. [GET] /
+### 1. [GET] /ask
 - **설명:** Q&A 게시판의 전체 질문 목록을 조회합니다.
+- **Path Variable:** `regionId` (Long) - 지역 ID
 - **Response Body (Success):**
 ```json
 {
@@ -175,9 +176,11 @@
 }
 ```
 
-### 2. [GET] /{postId}
+### 2. [GET] /ask/{communityId}
 - **설명:** 특정 Q&A 게시글의 상세 내용을 조회합니다.
-- **Path Variable:** `postId` (Long) - 게시글 ID
+- **Path Variables:** 
+    - `regionId` (Long) - 지역 ID
+    - `communityId` (Long) - 게시글 ID
 - **Response Body (Success):**
 ```json
 {
@@ -197,8 +200,9 @@
 }
 ```
 
-### 3. [POST] /
+### 3. [POST] /ask/write
 - **설명:** 새로운 Q&A 질문을 작성합니다. (로그인 필요)
+- **Path Variable:** `regionId` (Long) - 지역 ID
 - **Request Body:**
 ```json
 {
@@ -213,9 +217,11 @@
 }
 ```
 
-### 4. [POST] /{postId}/comments
+### 4. [POST] /{communityId}/ask/comment
 - **설명:** 특정 Q&A 게시글에 댓글을 작성합니다. (로그인 필요)
-- **Path Variable:** `postId` (Long) - 게시글 ID
+- **Path Variables:** 
+    - `regionId` (Long) - 지역 ID
+    - `communityId` (Long) - 게시글 ID
 - **Request Body:**
 ```json
 {
@@ -261,7 +267,9 @@
 
 ### 2. [PATCH] /{reviewId}
 - **설명:** 기존 블라인드 리뷰를 수정합니다. (로그인 및 작성자 확인 필요)
-- **Path Variables:** `regionId` (Long), `reviewId` (Long)
+- **Path Variables:** 
+    - `regionId` (Long) - 지역 ID
+    - `reviewId` (Long) - 리뷰 ID
 - **Request Body:** (수정할 필드만 포함)
 ```json
 {
@@ -285,7 +293,9 @@
 
 ### 3. [DELETE] /{reviewId}
 - **설명:** 블라인드 리뷰를 삭제합니다. (로그인 및 작성자 확인 필요)
-- **Path Variables:** `regionId` (Long), `reviewId` (Long)
+- **Path Variables:** 
+    - `regionId` (Long) - 지역 ID
+    - `reviewId` (Long) - 리뷰 ID
 - **Response Body (Success):**
 ```json
 {
@@ -295,7 +305,9 @@
 
 ### 4. [GET] /{reviewId}
 - **설명:** 특정 블라인드 리뷰의 상세 내용을 조회합니다.
-- **Path Variables:** `regionId` (Long), `reviewId` (Long)
+- **Path Variables:** 
+    - `regionId` (Long) - 지역 ID
+    - `reviewId` (Long) - 리뷰 ID
 - **Response Body (Success):**
 ```json
 {
@@ -318,7 +330,7 @@
 
 ### 5. [GET] /
 - **설명:** 특정 지역의 모든 블라인드 리뷰 요약 목록을 조회합니다.
-- **Path Variable:** `regionId` (Long)
+- **Path Variable:** `regionId` (Long) - 지역 ID
 - **Response Body (Success):**
 ```json
 {

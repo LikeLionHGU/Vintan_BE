@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.reflect.Field;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -35,9 +36,9 @@ public class CommunityAskService {
 
     /** ----------------------------- List of Questions ----------------------------- */
     @Transactional(readOnly = true)
-    public AskResponseDto getAskList() {
+    public AskResponseDto getAskList(Long regionId) {
         // Use @EntityGraph in repository to prevent N+1 queries
-        List<QnaPost> posts = qnaPostRepository.findAllByOrderByPostIdDesc();
+        List<QnaPost> posts = qnaPostRepository.findAllByRegionIdOrderByPostIdDesc(regionId);
 
         // Map posts to DTOs
         List<AskDto> askList = posts.stream()
@@ -51,9 +52,9 @@ public class CommunityAskService {
 
     /** ----------------------------- Question Detail ----------------------------- */
     @Transactional(readOnly = true)
-    public AskDetailResponseDto getAskDetail(Long postId) {
+    public AskDetailResponseDto getAskDetail(Long regionId, Long postId) {
         // Fetch post with comments using fetch join
-        QnaPost post = qnaPostRepository.findByIdWithComments(postId)
+        QnaPost post = qnaPostRepository.findByPostIdAndRegionIdWithComments(postId, regionId)
                 .orElseThrow(() -> new IllegalArgumentException("Post does not exist."));
 
         // Sort comments by ID
@@ -67,49 +68,68 @@ public class CommunityAskService {
 
     /** ----------------------------- Create Question ----------------------------- */
     @Transactional
-    public SimpleSuccessResponseDto createAsk(HttpSession session, CreateAskRequestDto req) {
-        // Get logged-in user from session
-        SessionUserDto sessionUser = (SessionUserDto) session.getAttribute(SESSION_USER);
-        if (sessionUser == null) return SimpleSuccessResponseDto.fail();
+    public SimpleSuccessResponseDto createAsk(Long regionId, HttpSession session, CreateAskRequestDto req) {
+        try {
+            // Get logged-in user from session
+            SessionUserDto sessionUser = (SessionUserDto) session.getAttribute(SESSION_USER);
+            if (sessionUser == null) return resp(0);
 
-        // Fetch user entity
-        User user = userRepository.findById(sessionUser.getId()).orElse(null);
-        if (user == null) return SimpleSuccessResponseDto.fail();
+            // Fetch user entity
+            User user = userRepository.findById(sessionUser.getId()).orElse(null);
+            if (user == null) return resp(0);
 
-        // Save new post
-        QnaPost post = QnaPost.builder()
-                .user(user)
-                .title(req.getTitle())
-                .content(req.getContent())
-                .build();
+            if (req == null || req.getTitle() == null || req.getTitle().isBlank()
+                    || req.getContent() == null || req.getContent().isBlank()) {
+                return resp(0);
+            }
 
-        qnaPostRepository.save(post);
-        return SimpleSuccessResponseDto.ok();
+            // Save new post
+            QnaPost post = QnaPost.builder()
+                    .user(user)
+                    .regionId(regionId)
+                    .title(req.getTitle())
+                    .content(req.getContent())
+                    .build();
+
+            qnaPostRepository.save(post);
+            return resp(1);
+        } catch (Exception e) {
+            return resp(0);
+        }
     }
 
     /** ----------------------------- Create Comment ----------------------------- */
     @Transactional
-    public SimpleSuccessResponseDto createComment(Long postId, HttpSession session, CreateCommentRequestDto req) {
-        // Validate session and request
-        SessionUserDto sessionUser = (SessionUserDto) session.getAttribute(SESSION_USER);
-        if (sessionUser == null || req == null || req.getComment().isBlank()) {
+    public SimpleSuccessResponseDto createComment(Long regionId, Long postId, HttpSession session, CreateCommentRequestDto req) {
+        SessionUserDto u = (SessionUserDto) session.getAttribute(SESSION_USER);
+        if (u == null) return SimpleSuccessResponseDto.fail();
+
+        User user = userRepository.findById(u.getId()).orElse(null);
+        if (user == null) return SimpleSuccessResponseDto.fail();
+
+        QnaPost post = qnaPostRepository.findByPostIdAndRegionId(postId, regionId).orElse(null);
+        if (post == null) return SimpleSuccessResponseDto.fail();
+
+        if (req == null || req.getComment() == null || req.getComment().isBlank())
             return SimpleSuccessResponseDto.fail();
-        }
 
-        // Fetch user and post entities
-        User user = userRepository.findById(sessionUser.getId()).orElse(null);
-        QnaPost post = qnaPostRepository.findById(postId).orElse(null);
-        if (user == null || post == null) return SimpleSuccessResponseDto.fail();
-
-        // Save comment
-        QnaComment comment = QnaComment.builder()
-                .post(post)
-                .user(user)
-                .text(req.getComment())
-                .textTime(java.time.LocalDateTime.now())
-                .build();
-
-        qnaCommentRepository.save(comment);
+        qnaCommentRepository.save(
+                QnaComment.builder()
+                        .post(post)
+                        .user(user)
+                        .text(req.getComment())
+                        .build()
+        );
         return SimpleSuccessResponseDto.ok();
+    }
+
+    private SimpleSuccessResponseDto resp(int v) {
+        SimpleSuccessResponseDto dto = new SimpleSuccessResponseDto();
+        try {
+            Field f = SimpleSuccessResponseDto.class.getDeclaredField("isSuccess");
+            f.setAccessible(true);
+            f.setInt(dto, v);
+        } catch (Exception ignored) { }
+        return dto;
     }
 }

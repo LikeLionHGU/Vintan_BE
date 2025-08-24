@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/regions") // Base URL path for all endpoints in this controller
+@RequestMapping("/regions/{regionId}/community") // Base URL path for all endpoints in this controller
 public class CommunityAskController {
 
     private final CommunityAskService communityAskService; // Service layer for community ask operations
@@ -29,37 +29,28 @@ public class CommunityAskController {
      *
      * @return ResponseEntity containing AskResponseDto with question list
      */
-    @GetMapping
-    public ResponseEntity<AskResponseDto> getAskList() {
-        return ResponseEntity.ok(communityAskService.getAskList());
+    @GetMapping("/ask")
+    public ResponseEntity<AskResponseDto> getAskList(
+            @PathVariable("regionId") Long regionId
+    ) {
+        return ResponseEntity.ok(communityAskService.getAskList(regionId));
     }
 
-    /**
-     * GET /regions/{postId}
-     * Retrieves detailed information for a specific question post.
-     *
-     * @param postId ID of the question post
-     * @return ResponseEntity containing AskDetailResponseDto with post details
-     */
-    @GetMapping("/{postId}")
-    public ResponseEntity<AskDetailResponseDto> getAskDetail(@PathVariable Long postId) {
-        return ResponseEntity.ok(communityAskService.getAskDetail(postId));
+    @GetMapping("/ask/{communityId}")
+    public ResponseEntity<AskDetailResponseDto> getAskDetail(
+            @PathVariable("regionId") Long regionId,
+            @PathVariable("communityId") Long postId
+    ) {
+        return ResponseEntity.ok(communityAskService.getAskDetail(regionId, postId));
     }
 
-    /**
-     * POST /regions
-     * Creates a new community question post.
-     *
-     * @param session HttpSession of the current user
-     * @param request CreateAskRequestDto containing question details
-     * @return ResponseEntity with SimpleSuccessResponseDto indicating success
-     */
-    @PostMapping
+    @PostMapping("/ask/write")
     public ResponseEntity<SimpleSuccessResponseDto> createAsk(
+            @PathVariable("regionId") Long regionId,
             HttpSession session,
             @Valid @RequestBody CreateAskRequestDto request
     ) {
-        return ResponseEntity.ok(communityAskService.createAsk(session, request));
+        return ResponseEntity.ok(communityAskService.createAsk(regionId, session, request));
     }
 
     /**
@@ -71,12 +62,13 @@ public class CommunityAskController {
      * @param request CreateCommentRequestDto containing comment details
      * @return ResponseEntity with SimpleSuccessResponseDto indicating success
      */
-    @PostMapping("/{postId}/comments")
+    @PostMapping("/{communityId}/ask/comment")
     public ResponseEntity<SimpleSuccessResponseDto> createComment(
-            @PathVariable Long postId,
+            @PathVariable("regionId") Long regionId,
+            @PathVariable("communityId") Long postId,
             HttpSession session,
             @Valid @RequestBody CreateCommentRequestDto request
     ) {
-        return ResponseEntity.ok(communityAskService.createComment(postId, session, request));
+        return ResponseEntity.ok(communityAskService.createComment(regionId, postId, session, request));
     }
 }
