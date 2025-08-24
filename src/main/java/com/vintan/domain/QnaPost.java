@@ -33,12 +33,10 @@ public class QnaPost {
     @Column(name = "title", nullable = false, length = 200)
     private String title; // Title of the Q&A post
 
-<<<<<<< HEAD
+
     @Column(name = "region_id", nullable = false)
     private Long regionId;
 
-=======
->>>>>>> a1e46268a7dbb10ae54fa37c2621c3fdb7a82293
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content; // Main content of the post
 
