@@ -41,6 +41,7 @@ public class MyPageQueryService {
                 .stream()
                 .map(p -> AskMyPageDto.builder()
                         .id(user.getId()) // Per spec: user ID
+                        .askId(p.getPostId())
                         .title(p.getTitle())
                         .countComment(qnaPostRepository.countComments(p.getPostId()))
                         .date(p.getCreatedAt() != null ? p.getCreatedAt().format(FMT) : null)
@@ -104,6 +105,7 @@ public class MyPageQueryService {
                 .categoryRate(crDto)
                 .positive(post.getPositive())
                 .negative(post.getNegative())
+                .regionId(post.getRegionNo())
                 .build();
     }
 }

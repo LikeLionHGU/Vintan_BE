@@ -16,6 +16,7 @@ public class BlindSummaryDto {
     private String title;  // Post title
     private String date;   // Post creation date (formatted yyyy.MM.dd)
     private String userId; // ID of the user who created the post
+    private String address;
 
     /**
      * Constructs a BlindSummaryDto from a BlindCommunityPost entity.
@@ -31,5 +32,6 @@ public class BlindSummaryDto {
         this.title = post.getTitle();
         this.date = post.getRegDate().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"));
         this.userId = post.getUser().getId();
+        this.address = post.getAddress();
     }
 }

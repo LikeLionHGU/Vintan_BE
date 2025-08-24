@@ -28,4 +28,6 @@ public class BlindMyPageDto {
     private String positive;            // Positive aspects
 
     private String negative;            // Negative aspects
+
+    private Long regionId;
 }

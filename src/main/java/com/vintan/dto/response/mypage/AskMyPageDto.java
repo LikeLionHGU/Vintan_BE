@@ -14,6 +14,8 @@ public class AskMyPageDto {
 
     private String id;            // User ID
 
+    private Long askId;
+
     private String title;         // Question title
 
     private Integer countComment; // Number of comments

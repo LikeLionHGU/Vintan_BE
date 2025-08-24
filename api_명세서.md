@@ -322,7 +322,7 @@
 
 **\[POST]** `/regions/{regionId}/community/blind/reviews`
 
-**Request**
+**Request*
 
 ```json
 {
@@ -443,14 +443,16 @@
             "rate": 4.25,
             "title": "양덕동 카페거리 솔직 후기",
             "date": "2024.08.19",
-            "userId": "reviewer1"
+            "userId": "reviewer1",
+            "address" : "Aaaaa"
         },
         {
             "id": 2,
             "rate": 4.5,
             "title": "장성동 신상 맛집 리뷰",
             "date": "2024.08.18",
-            "userId": "reviewer2"
+            "userId": "reviewer2",
+            "address" : "Aaaaa"
         }
     ]
 }
@@ -477,6 +479,7 @@
   "blind": {
     "id": 10,
     "totalRate": 4.0,
+    "regionId" : 1,
     "title": "내가 쓴 블라인드 리뷰",
     "address": "포항시 남구",
     "date": "2025.08.15",
@@ -492,12 +495,14 @@
   "ask": [
     {
       "id": "exampleUser",
+      "askId" : 2,
       "title": "내가 쓴 Q&A 질문 1",
       "countComment": 2,
       "date": "2025.08.16"
     },
     {
       "id": "exampleUser",
+      "askId" : 2,
       "title": "내가 쓴 Q&A 질문 2",
       "countComment": 0,
       "date": "2025.08.17"
