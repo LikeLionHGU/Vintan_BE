@@ -14,40 +14,47 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/regions")
+@RequestMapping("/regions/{regionsId}/community")
 public class CommunityAskController {
 
     private final CommunityAskService communityAskService;
 
-    /** GET /community/ask : 대표화면 목록 */
-    @GetMapping
-    public ResponseEntity<AskResponseDto> getAskList() {
-        return ResponseEntity.ok(communityAskService.getAskList());
+    /** 대표화면 목록: GET /regions/{regionsId}/community/ask */
+    @GetMapping("/ask")
+    public ResponseEntity<AskResponseDto> getAskList(
+            @PathVariable("regionsId") Long regionId
+    ) {
+        return ResponseEntity.ok(communityAskService.getAskList(regionId));
     }
 
-    /** GET /community/ask/{postId} : 상세보기 */
-    @GetMapping("/{postId}")
-    public ResponseEntity<AskDetailResponseDto> getAskDetail(@PathVariable Long postId) {
-        return ResponseEntity.ok(communityAskService.getAskDetail(postId));
+    /** 상세보기: GET /regions/{regionsId}/community/ask/{communityId} */
+    @GetMapping("/ask/{communityId}")
+    public ResponseEntity<AskDetailResponseDto> getAskDetail(
+            @PathVariable("regionsId") Long regionId,
+            @PathVariable("communityId") Long postId
+    ) {
+        return ResponseEntity.ok(communityAskService.getAskDetail(regionId, postId));
     }
 
-    /** POST /community/ask : 질문 글 작성 */
-    @PostMapping
+    /** 글 작성: POST /regions/{regionsId}/community/ask/write */
+    @PostMapping("/ask/write")
     public ResponseEntity<SimpleSuccessResponseDto> createAsk(
+            @PathVariable("regionsId") Long regionId,
             HttpSession session,
             @Valid @RequestBody CreateAskRequestDto request
     ) {
-        return ResponseEntity.ok(communityAskService.createAsk(session, request));
+        return ResponseEntity.ok(communityAskService.createAsk(regionId, session, request));
     }
 
-    /** POST /community/ask/{postId}/comments : 댓글 작성 */
-    @PostMapping("/{postId}/comments")
+    /** 댓글 작성: POST /regions/{regionsId}/community/{communityId}/ask/comment */
+    @PostMapping("/{communityId}/ask/comment")
     public ResponseEntity<SimpleSuccessResponseDto> createComment(
-            @PathVariable Long postId,
+            @PathVariable("regionsId") Long regionId,
+            @PathVariable("communityId") Long postId,
             HttpSession session,
             @Valid @RequestBody CreateCommentRequestDto request
     ) {
-        return ResponseEntity.ok(communityAskService.createComment(postId, session, request));
+        return ResponseEntity.ok(communityAskService.createComment(regionId, postId, session, request));
     }
 }
 

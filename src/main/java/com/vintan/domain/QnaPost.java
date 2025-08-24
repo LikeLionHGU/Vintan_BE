@@ -15,16 +15,20 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "QNACommunityPosts")
-
 public class QnaPost {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //pk 자동 생성
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "postId")
     private Long postId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "userid", referencedColumnName = "user_id", nullable = false)
-    private User user;               // FK → User.user_id
+    private User user;
+
+    // ✅ 지역 ID 추가 (최소 변경: 숫자 FK만 보관)
+    @Column(name = "region_id", nullable = false)
+    private Long regionId;
 
     @Column(name = "title", nullable = false, length = 200)
     private String title;
@@ -34,11 +38,9 @@ public class QnaPost {
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;   // ← 목록/상세에서 보여줄 작성일
+    private LocalDateTime createdAt;
 
-    // 댓글 리스트 연관관계 매핑
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<QnaComment> comments = new ArrayList<>();
-
 }

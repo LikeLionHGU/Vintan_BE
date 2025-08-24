@@ -1,8 +1,7 @@
 package com.vintan.service;
 
-
-import com.vintan.domain.QnaPost;
 import com.vintan.domain.QnaComment;
+import com.vintan.domain.QnaPost;
 import com.vintan.domain.User;
 import com.vintan.dto.request.ask.CreateAskRequestDto;
 import com.vintan.dto.request.ask.CreateCommentRequestDto;
@@ -32,17 +31,13 @@ public class CommunityAskService {
     private final QnaCommentRepository qnaCommentRepository;
     private final UserRepository userRepository;
 
-    // ✅ UserController와 동일하게 맞춤
     private static final String SESSION_USER = "loggedInUser";
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
-    private static final DateTimeFormatter DATE_FMT =
-            DateTimeFormatter.ofPattern("yyyy.MM.dd");
-
-    /** 대표화면 목록 */
+    /** 질문 목록 (지역별) */
     @Transactional(readOnly = true)
-    public AskResponseDto getAskList() {
-        // N+1 완화 위해 @EntityGraph가 QnaPostRepository.findAllByOrderByPostIdDesc()에 붙어있다고 가정
-        List<QnaPost> posts = qnaPostRepository.findAllByOrderByPostIdDesc();
+    public AskResponseDto getAskList(Long regionId) {
+        List<QnaPost> posts = qnaPostRepository.findAllByRegionIdOrderByPostIdDesc(regionId);
 
         List<AskDto> askList = posts.stream()
                 .map(p -> AskDto.builder()
@@ -57,11 +52,11 @@ public class CommunityAskService {
         return AskResponseDto.builder().askList(askList).build();
     }
 
-    /** 상세보기 */
+    /** 질문 상세 (지역+게시글 보장) */
     @Transactional(readOnly = true)
-    public AskDetailResponseDto getAskDetail(Long postId) {
-        QnaPost post = qnaPostRepository.findByIdWithComments(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
+    public AskDetailResponseDto getAskDetail(Long regionId, Long postId) {
+        QnaPost post = qnaPostRepository.findByPostIdAndRegionIdWithComments(postId, regionId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 지역에 게시글이 존재하지 않습니다."));
 
         var commentsSorted = post.getComments()
                 .stream()
@@ -71,19 +66,24 @@ public class CommunityAskService {
         return AskDetailResponseDto.from(post, commentsSorted);
     }
 
-    /** 질문 글 작성 */
+    /** 질문 글 작성 (지역 설정) */
     @Transactional
-    public SimpleSuccessResponseDto createAsk(HttpSession session, CreateAskRequestDto req) {
+    public SimpleSuccessResponseDto createAsk(Long regionId, HttpSession session, CreateAskRequestDto req) {
         try {
-            // ✅ 세션에서 SessionUserDto 읽기
             SessionUserDto sessionUser = (SessionUserDto) session.getAttribute(SESSION_USER);
             if (sessionUser == null) return resp(0);
 
             User user = userRepository.findById(sessionUser.getId()).orElse(null);
             if (user == null) return resp(0);
 
+            if (req == null || req.getTitle() == null || req.getTitle().isBlank()
+                    || req.getContent() == null || req.getContent().isBlank()) {
+                return resp(0);
+            }
+
             QnaPost post = QnaPost.builder()
                     .user(user)
+                    .regionId(regionId)
                     .title(req.getTitle())
                     .content(req.getContent())
                     .build();
@@ -95,32 +95,33 @@ public class CommunityAskService {
         }
     }
 
-
-    /** 댓글 작성 */
+    /** 댓글 작성 (지역/게시글 유효성 확인) */
     @Transactional
-    public SimpleSuccessResponseDto createComment(Long postId, HttpSession session, CreateCommentRequestDto req) {
-        // 1) 사전 가드 (세션, 파라미터, 존재성 등)
-        SessionUserDto u = (SessionUserDto) session.getAttribute("loggedInUser");
+    public SimpleSuccessResponseDto createComment(Long regionId, Long postId, HttpSession session, CreateCommentRequestDto req) {
+        SessionUserDto u = (SessionUserDto) session.getAttribute(SESSION_USER);
         if (u == null) return SimpleSuccessResponseDto.fail();
-        var user = userRepository.findById(u.getId()).orElse(null);
-        if (user == null) return SimpleSuccessResponseDto.fail();
-        var post = qnaPostRepository.findById(postId).orElse(null);
-        if (post == null) return SimpleSuccessResponseDto.fail();
-        if (req == null || req.getComment() == null || req.getComment().isBlank()) return SimpleSuccessResponseDto.fail();
 
-        // 2) DB 처리 (예외는 던지게 둠)
+        User user = userRepository.findById(u.getId()).orElse(null);
+        if (user == null) return SimpleSuccessResponseDto.fail();
+
+        QnaPost post = qnaPostRepository.findByPostIdAndRegionId(postId, regionId).orElse(null);
+        if (post == null) return SimpleSuccessResponseDto.fail();
+
+        if (req == null || req.getComment() == null || req.getComment().isBlank())
+            return SimpleSuccessResponseDto.fail();
+
         qnaCommentRepository.save(
                 QnaComment.builder()
                         .post(post)
                         .user(user)
                         .text(req.getComment())
-                        .textTime(java.time.LocalDateTime.now())
+                        // textTime은 @CreatedDate로 자동 셋업
                         .build()
         );
         return SimpleSuccessResponseDto.ok();
     }
 
-    /** SimpleSuccessResponseDto(isSuccess) 값 셋팅 (DTO에 세터/생성자 없을 때) */
+    /** SimpleSuccessResponseDto(isSuccess) 편의 설정 (세터/생성자 없을 때) */
     private SimpleSuccessResponseDto resp(int v) {
         SimpleSuccessResponseDto dto = new SimpleSuccessResponseDto();
         try {
