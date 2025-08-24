@@ -110,7 +110,7 @@ public class UserController {
         // Return 401 Unauthorized if no session or user info
         if (session == null || session.getAttribute("loggedInUser") == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new UserInfoResponseDto(0, 0));
+                    .body(new UserInfoResponseDto(0, 0, ""));
         }
 
         // Retrieve user info from session
@@ -118,7 +118,8 @@ public class UserController {
 
         // Determine if the user is a business user
         int isBusiness = (sessionUserDto.getBusinessNumber() > 0) ? 1 : 0;
+        String name = sessionUserDto.getName();
 
-        return ResponseEntity.ok(new UserInfoResponseDto(1, isBusiness));
+        return ResponseEntity.ok(new UserInfoResponseDto(1, isBusiness, name));
     }
 }

@@ -13,5 +13,6 @@ public class UserInfoResponseDto {
 
     private final int isLogin;      // 1 if user is logged in, 0 otherwise
     private final int isBusiness;   // 1 if user has a business number, 0 otherwise
+    private final String name;
 
 }

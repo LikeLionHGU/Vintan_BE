@@ -111,7 +111,8 @@
 ```json
 {
     "isLogin": 1,
-    "isBusiness": 1
+    "isBusiness": 1,
+    "name" : "권혁민"
 }
 ```
 
