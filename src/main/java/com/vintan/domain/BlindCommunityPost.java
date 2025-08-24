@@ -1,7 +1,7 @@
 package com.vintan.domain;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.vintan.embedded.CategoryRate;
+import com.vintan.domain.embedded.CategoryRate;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -10,41 +10,44 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing an anonymous community post.
+ * Stores user feedback, ratings, and metadata for a specific region.
+ */
 @Entity
-@Setter
 @Getter
+@Setter
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-@EntityListeners(AuditingEntityListener.class)
+@AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class) // Enables automatic auditing of creation and update timestamps
 public class BlindCommunityPost {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column (name = "blindCommunityPost_id")
-    private Long id;
+    @Column(name = "blindCommunityPost_id")
+    private Long id; // Primary key
 
-    private String title;
-    private String positive;
-    private String negative;
-    private String address;
-    private Long regionNo;
+    private String title;    // Post title
+    private String positive; // Positive feedback content
+    private String negative; // Negative feedback content
+    private String address;  // Related location/address
+    private Long regionNo;   // Region ID to categorize posts
+    private String addressName;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user;
+    private User user; // Reference to the user who created the post (lazy loading)
 
     @Embedded
-    private CategoryRate categoryRate;
+    private CategoryRate categoryRate; // Embedded category ratings
 
     @CreatedDate
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.mm.dd HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.MM.dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(updatable = false)
-    private LocalDateTime regDate;
+    private LocalDateTime regDate; // Creation timestamp
 
     @LastModifiedDate
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.mm.dd HH:mm:ss", timezone = "Asia/Seoul")
-    private LocalDateTime updateDate;
-
-
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.MM.dd HH:mm:ss", timezone = "Asia/Seoul")
+    private LocalDateTime updateDate; // Last updated timestamp
 }

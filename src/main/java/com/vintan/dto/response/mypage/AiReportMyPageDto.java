@@ -2,6 +2,9 @@ package com.vintan.dto.response.mypage;
 
 import lombok.*;
 
+/**
+ * DTO for displaying AI-generated report info on the MyPage screen.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -9,17 +12,13 @@ import lombok.*;
 @Builder
 public class AiReportMyPageDto {
 
+    private Long id;           // Report ID
 
-    private String id;          // 사용자 id
+    private String address;      // Location (address from the latest report)
 
+    private Integer reportCount; // Number of reports
 
-    private String address;     // 입지(최근 보고서의 address)
+    private String date;         // Report creation date (formatted as yyyy.MM.dd)
 
-
-    private Integer reportCount;// 보고서 개수
-
-
-    private String date;        // 작성 날짜(yyyy.mm.dd)
-
-
+    private String category;
 }

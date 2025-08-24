@@ -6,15 +6,20 @@ import lombok.Getter;
 
 import java.time.format.DateTimeFormatter;
 
+/**
+ * DTO representing the detailed view of a blind community post.
+ */
 @Getter
 @AllArgsConstructor
 public class CommunityBlindDetailResponseDto {
-    private String title;
-    private String positive;
-    private String negative;
-    private String address;
-    private String date;
-    private CategoryRateDto categoryRate;
+
+    private String title;            // Post title
+    private String positive;         // Positive feedback content
+    private String negative;         // Negative feedback content
+    private String address;          // Address of the post
+    private String date;             // Post creation date (yyyy.MM.dd)
+    private CategoryRateDto categoryRate; // Ratings for cleanliness, people, accessibility, rent fee
+    private String addressName;
 
     public CommunityBlindDetailResponseDto(BlindCommunityPost post) {
         this.title = post.getTitle();

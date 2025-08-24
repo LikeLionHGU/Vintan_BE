@@ -1,9 +1,9 @@
-package com.vintan.component;
+package com.vintan.component.gemini;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vintan.dto.aiReport.CompanyDto;
+import com.vintan.dto.request.ai.kakao.CompanyDto;
 import com.vintan.dto.response.ai.GeneralOverviewGeminiDto;
 import com.vintan.dto.response.ai.KakaoPlaceDto;
 import com.vintan.dto.response.community.CommunityAllReviewResponseDto;
@@ -19,17 +19,24 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * GeminiApiClient is responsible for interacting with Google's Gemini API
+ * to generate various business-related analysis and reports using AI.
+ */
 @Component
 @RequiredArgsConstructor
 public class GeminiApiClient {
 
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final BlindCommunityPostService blindCommunityPostService;
+    private final RestTemplate restTemplate; // Used to make HTTP requests
+    private final ObjectMapper objectMapper = new ObjectMapper(); // For JSON serialization/deserialization
+    private final BlindCommunityPostService blindCommunityPostService; // Service for fetching community reviews
 
     @Value("${gemini.api.key}")
-    private String geminiApiKey;
+    private String geminiApiKey; // API key for Gemini API, injected from application properties
 
+    /**
+     * Generates a one-sentence description of a company based on its name, address, and category.
+     */
     public String generateCompanyDescription(KakaoPlaceDto place) {
         String prompt = String.format(
                 "'%s'는(은) '%s' 주소에 위치한 '%s' 카테고리의 가게입니다. 이 가게의 특징과 컨셉을 한 문장으로 설명해주세요.",
@@ -38,6 +45,10 @@ public class GeminiApiClient {
         return callGeminiApi(prompt, "개별 업체 설명 생성에 실패했습니다.");
     }
 
+    /**
+     * Analyzes the competition in a given area using a list of competitor companies.
+     * Returns a JSON string containing summary and score (25 points max).
+     */
     public String analyzeCompetition(List<CompanyDto> competitors) {
         StringBuilder promptBuilder = new StringBuilder("다음은 한 지역의 경쟁 업체들 각각에 대한 요약 정보입니다:\n");
         for (CompanyDto competitor : competitors) {
@@ -55,6 +66,10 @@ public class GeminiApiClient {
         return callGeminiApi(promptBuilder.toString(), "경쟁 강도 분석에 실패했습니다.");
     }
 
+    /**
+     * Generates an accessibility and surrounding facilities analysis report.
+     * Includes parking, landmarks, public transport, station info, summary, and a score.
+     */
     public String generateAccessibilityAnalysis(String address, List<String> landmarks, List<String> stations, List<String> busRoutes) {
         String prompt = String.format(
                 "너는 상권 분석 전문가야. 아래 데이터를 바탕으로 '접근성 및 주변 시설 분석' 보고서를 작성해줘.\n\n" +
@@ -90,6 +105,9 @@ public class GeminiApiClient {
         return callGeminiApi(prompt, "접근성 분석 생성에 실패했습니다.");
     }
 
+    /**
+     * Generates an analysis report for floating population around a given address.
+     */
     public String generatefloatingPopulationAnalysisJson(String address) {
         String prompt = String.format(
                 "너는 상권 분석 전문가야. 아래 데이터를 바탕으로 '유동인구' 보고서를 작성해줘.\n\n" +
@@ -119,14 +137,18 @@ public class GeminiApiClient {
         return callGeminiApi(prompt, "접근성 분석 생성에 실패했습니다.");
     }
 
+    /**
+     * Generates an overview review analysis for a specific region by fetching community posts and analyzing them.
+     */
     public GeneralOverviewGeminiDto generateOverallReview(Long regionId) {
         CommunityAllReviewResponseDto responseDto = blindCommunityPostService.getAllPost(regionId);
+        int postCount = responseDto.getBlind().size();
 
         try {
-            // 1. responseDto 객체를 JSON 문자열로 변환합니다.
+            // Convert responseDto to JSON string for inclusion in prompt
             String communityDataAsJson = objectMapper.writeValueAsString(responseDto);
 
-            // 2. 변환된 JSON 문자열을 프롬프트에 넣습니다.
+            // Build the prompt for Gemini
             String prompt = String.format(
                     "너는 상권 분석 전문가야. 아래 데이터를 바탕으로 '전체 적인 커뮤니티' 보고서를 작성해줘.\n\n" +
                             "[입력 데이터]\n" +
@@ -148,13 +170,15 @@ public class GeminiApiClient {
                     communityDataAsJson
             );
             String geminiOutput = callGeminiApi(prompt, "접근성 분석 생성에 실패했습니다.");
-            return new GeneralOverviewGeminiDto(geminiOutput, responseDto);
-
+            return new GeneralOverviewGeminiDto(geminiOutput, responseDto, postCount);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("커뮤니티 데이터 JSON 변환에 실패했습니다.", e);
         }
     }
 
+    /**
+     * Generates a final comprehensive business report combining all analyses and scores.
+     */
     public String generateFinalReport(String competitionAnalysisJson,
                                       String accessibilityAnalysisJson,
                                       String floatingPopulationAnalysisJson,
@@ -216,12 +240,17 @@ public class GeminiApiClient {
         return callGeminiApi(prompt, "최종 보고서 생성에 실패했습니다.");
     }
 
+    /**
+     * Calls Gemini API with the given prompt and returns the generated text response.
+     * Handles response parsing and JSON extraction.
+     */
     private String callGeminiApi(String prompt, String errorMessage) {
         String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" + geminiApiKey;
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
+        // Prepare request body for Gemini API
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
                         Map.of("parts", List.of(
@@ -233,11 +262,17 @@ public class GeminiApiClient {
         try {
             String jsonBody = objectMapper.writeValueAsString(requestBody);
             HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
+
+            // Send POST request to Gemini API
             String response = restTemplate.postForObject(apiUrl, requestEntity, String.class);
+
+            // Parse JSON response
             JsonNode root = objectMapper.readTree(response);
 
+            // Extract AI-generated text
             String resultText = root.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
 
+            // If response starts with ```json, strip markdown code block
             if (resultText.startsWith("```json")) {
                 resultText = resultText.substring(7, resultText.length() - 3).trim();
             }
@@ -248,7 +283,4 @@ public class GeminiApiClient {
             return errorMessage;
         }
     }
-
-
-
 }

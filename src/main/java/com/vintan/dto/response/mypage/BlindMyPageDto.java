@@ -1,9 +1,11 @@
-
 package com.vintan.dto.response.mypage;
 
 import com.vintan.dto.response.community.CategoryRateDto;
 import lombok.*;
 
+/**
+ * DTO for displaying blind community posts on the MyPage screen.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -11,29 +13,19 @@ import lombok.*;
 @Builder
 public class BlindMyPageDto {
 
+    private Long id;                    // Post ID
 
-    private Long id;               // Post ID
+    private Double totalRate;           // Overall rating
 
+    private String title;               // Post title
 
-    private Double totalRate;      // 전체 평점
+    private String address;             // Business/region address
 
+    private String date;                // Post creation date (yyyy.MM.dd)
 
-    private String title;          // 글 제목
+    private CategoryRateDto categoryRate; // Ratings by category
 
+    private String positive;            // Positive aspects
 
-    private String address;        // 상권 주소
-
-
-    private String date;           // yyyy.mm.dd
-
-
-    private CategoryRateDto categoryRate; // 카테고리별 평점
-
-
-    private String positive;       // 장점
-
-
-    private String negative;       // 단점
-
-
+    private String negative;            // Negative aspects
 }
