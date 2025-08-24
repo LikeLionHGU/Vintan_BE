@@ -18,7 +18,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+<<<<<<< HEAD
 import java.lang.reflect.Field;
+=======
+>>>>>>> a1e46268a7dbb10ae54fa37c2621c3fdb7a82293
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -36,9 +39,15 @@ public class CommunityAskService {
 
     /** ----------------------------- List of Questions ----------------------------- */
     @Transactional(readOnly = true)
+<<<<<<< HEAD
     public AskResponseDto getAskList(Long regionId) {
         // Use @EntityGraph in repository to prevent N+1 queries
         List<QnaPost> posts = qnaPostRepository.findAllByRegionIdOrderByPostIdDesc(regionId);
+=======
+    public AskResponseDto getAskList() {
+        // Use @EntityGraph in repository to prevent N+1 queries
+        List<QnaPost> posts = qnaPostRepository.findAllByOrderByPostIdDesc();
+>>>>>>> a1e46268a7dbb10ae54fa37c2621c3fdb7a82293
 
         // Map posts to DTOs
         List<AskDto> askList = posts.stream()
@@ -52,9 +61,15 @@ public class CommunityAskService {
 
     /** ----------------------------- Question Detail ----------------------------- */
     @Transactional(readOnly = true)
+<<<<<<< HEAD
     public AskDetailResponseDto getAskDetail(Long regionId, Long postId) {
         // Fetch post with comments using fetch join
         QnaPost post = qnaPostRepository.findByPostIdAndRegionIdWithComments(postId, regionId)
+=======
+    public AskDetailResponseDto getAskDetail(Long postId) {
+        // Fetch post with comments using fetch join
+        QnaPost post = qnaPostRepository.findByIdWithComments(postId)
+>>>>>>> a1e46268a7dbb10ae54fa37c2621c3fdb7a82293
                 .orElseThrow(() -> new IllegalArgumentException("Post does not exist."));
 
         // Sort comments by ID
@@ -68,6 +83,7 @@ public class CommunityAskService {
 
     /** ----------------------------- Create Question ----------------------------- */
     @Transactional
+<<<<<<< HEAD
     public SimpleSuccessResponseDto createAsk(Long regionId, HttpSession session, CreateAskRequestDto req) {
         try {
             // Get logged-in user from session
@@ -96,10 +112,31 @@ public class CommunityAskService {
         } catch (Exception e) {
             return resp(0);
         }
+=======
+    public SimpleSuccessResponseDto createAsk(HttpSession session, CreateAskRequestDto req) {
+        // Get logged-in user from session
+        SessionUserDto sessionUser = (SessionUserDto) session.getAttribute(SESSION_USER);
+        if (sessionUser == null) return SimpleSuccessResponseDto.fail();
+
+        // Fetch user entity
+        User user = userRepository.findById(sessionUser.getId()).orElse(null);
+        if (user == null) return SimpleSuccessResponseDto.fail();
+
+        // Save new post
+        QnaPost post = QnaPost.builder()
+                .user(user)
+                .title(req.getTitle())
+                .content(req.getContent())
+                .build();
+
+        qnaPostRepository.save(post);
+        return SimpleSuccessResponseDto.ok();
+>>>>>>> a1e46268a7dbb10ae54fa37c2621c3fdb7a82293
     }
 
     /** ----------------------------- Create Comment ----------------------------- */
     @Transactional
+<<<<<<< HEAD
     public SimpleSuccessResponseDto createComment(Long regionId, Long postId, HttpSession session, CreateCommentRequestDto req) {
         SessionUserDto u = (SessionUserDto) session.getAttribute(SESSION_USER);
         if (u == null) return SimpleSuccessResponseDto.fail();
@@ -132,4 +169,29 @@ public class CommunityAskService {
         } catch (Exception ignored) { }
         return dto;
     }
+=======
+    public SimpleSuccessResponseDto createComment(Long postId, HttpSession session, CreateCommentRequestDto req) {
+        // Validate session and request
+        SessionUserDto sessionUser = (SessionUserDto) session.getAttribute(SESSION_USER);
+        if (sessionUser == null || req == null || req.getComment().isBlank()) {
+            return SimpleSuccessResponseDto.fail();
+        }
+
+        // Fetch user and post entities
+        User user = userRepository.findById(sessionUser.getId()).orElse(null);
+        QnaPost post = qnaPostRepository.findById(postId).orElse(null);
+        if (user == null || post == null) return SimpleSuccessResponseDto.fail();
+
+        // Save comment
+        QnaComment comment = QnaComment.builder()
+                .post(post)
+                .user(user)
+                .text(req.getComment())
+                .textTime(java.time.LocalDateTime.now())
+                .build();
+
+        qnaCommentRepository.save(comment);
+        return SimpleSuccessResponseDto.ok();
+    }
+>>>>>>> a1e46268a7dbb10ae54fa37c2621c3fdb7a82293
 }
