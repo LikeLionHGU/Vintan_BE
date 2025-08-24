@@ -1,14 +1,32 @@
-# Vintan API 명세서
+# **📄 Vintan API 명세서**
 
-이 문서는 Vintan 백엔드 API의 사양을 정의합니다.
+본 문서는 **Vintan 백엔드 API**의 사양을 정의합니다.
 
 ---
 
-## 👤 User Controller
-- **Base URL:** `/auth/login`
+## **📑 목차**
 
-### 1. [POST] /register
-- **설명:** 신규 유저를 등록합니다.
+1. [👤 User API](#-1-user-api)
+2. [🤖 AI Report API](#-2-ai-report-api)
+3. [💬 Community Ask API](#-3-community-ask-api)
+4. [🕶️ Community Blind API](#-4-community-blind-api)
+5. [👤 My Page API](#-5-my-page-api)
+
+---
+
+## **1. 👤 User API**
+
+* **Base URL:** `/auth`
+
+---
+
+### **1.1 회원가입**
+
+**\[POST]** `/auth/register`
+**설명:** 신규 유저를 등록합니다.
+
+**Request**
+
 ```json
 {
     "id": "exampleUser",
@@ -18,51 +36,78 @@
     "businessNumber": 1234567890
 }
 ```
-- **Response Body (Success):**
+
+**Response**
+
 ```json
 {
     "isRegistered": 1
 }
 ```
 
-### 2. [GET] /duplicate/{userId}
-- **설명:** 사용자 ID의 중복 여부를 확인합니다.
-- **Path Variable:** `userId` (String) - 확인할 사용자 ID
-- **Response Body:**
+---
+
+### **1.2 아이디 중복 확인**
+
+**\[GET]** `/auth/duplicate/{userId}`
+**설명:** 사용자 ID의 중복 여부 확인
+
+**Response**
+
 ```json
 {
     "isDuplicated": 1
 }
 ```
 
-### 3. [POST] /login
-- **설명:** 사용자가 시스템에 로그인하고 세션을 생성합니다.
-- **Request Body:**
+---
+
+### **1.3 로그인**
+
+**\[POST]** `/auth/login`
+**설명:** 사용자 로그인 및 세션 생성
+
+**Request**
+
 ```json
 {
     "id": "exampleUser",
     "password": "password123!"
 }
 ```
-- **Response Body (Success):**
+
+**Response**
+
 ```json
 {
     "isLogin": 1
 }
 ```
 
-### 4. [POST] /logout
-- **설명:** 사용자를 로그아웃 처리하고 세션을 무효화합니다.
-- **Response Body (Success):**
+---
+
+### **1.4 로그아웃**
+
+**\[POST]** `/auth/logout`
+**설명:** 세션 무효화
+
+**Response**
+
 ```json
 {
     "isLogout": 1
 }
 ```
 
-### 5. [GET] /session
-- **설명:** 현재 로그인된 사용자의 세션 정보를 확인합니다. (로그인 여부, 사업자 여부)
-- **Response Body (Success):**
+---
+
+### **1.5 세션 확인**
+
+**\[GET]** `/auth/session`
+**설명:** 로그인 여부 및 사업자 여부 확인
+
+**Response**
+
 ```json
 {
     "isLogin": 1,
@@ -72,34 +117,46 @@
 
 ---
 
-## 🤖 AI Report Controller
-- **Base URL:** `/ai/reports`
+## **2. 🤖 AI Report API**
 
-### 1. [POST] /generate/{regionId}
-- **설명:** 특정 지역에 대한 AI 상권 분석 보고서를 생성합니다. (로그인 필요)
-- **Path Variable:** `regionId` (Long) - 지역 ID
-- **Request Body:**
+* **Base URL:** `/ai/reports`
+
+---
+
+### **2.1 AI 보고서 생성**
+
+**\[POST]** `/ai/reports/generate/{regionId}`
+**설명:** 특정 지역에 대한 AI 상권 분석 보고서 생성 (로그인 필요)
+
+**Request**
+
 ```json
 {
     "address": "포항시 북구 장량로 20",
     "categoryCode": "카페",
     "pyeong": 15.5,
     "userDetail": "1층 코너 자리 원해요",
-    "userDetail": "1층 코너 자리 원해요",
     "addressName": "포항시 양덕동"
 }
 ```
-- **Response Body (Success):**
+
+**Response**
+
 ```json
 {
     "reportId": 1
 }
 ```
 
-### 2. [GET] /{reportId}
-- **설명:** 생성된 AI 상권 분석 보고서의 상세 내용을 조회합니다.
-- **Path Variable:** `reportId` (Long) - 보고서 ID
-- **Response Body (Success):**
+---
+
+### **2.2 보고서 상세 조회**
+
+**\[GET]** `/ai/reports/{reportId}`
+**설명:** 생성된 AI 상권 분석 보고서 조회
+
+**Response**
+
 ```json
 {
     "id": 1,
@@ -121,7 +178,7 @@
     ],
     "competitorSummary": "반경 500m 내에 3개의 경쟁업체가 있으며, 평균 평점은 4.2점입니다.",
     "accessibilityAnalysis": {
-        "summary": "주요 도로에 인접해 있어 차량 접근성이 우수하며, 버스 정류장이 도보 3분 거리에 위치합니다.",
+        "summary": "주요 도로에 인접해 차량 접근성이 우수하며, 버스 정류장이 도보 3분 거리에 위치합니다.",
         "parkingPrice": "공영 주차장 시간당 1000원",
         "landmark": "장량초등학교",
         "publicTransport": "101번, 105번 버스",
@@ -147,8 +204,7 @@
         "averageReachabilityScore": 4.7,
         "averageRentFeeScore": 3.9
     },
-    "postCount" : 3,
-    "postCount" : 3 #위에 있는 generalOverviewReport를 참고 할때 사용됐던 post의 갯수
+    "postCount": 3,
     "finalReportReviewSummary": "종합적으로 볼 때, 해당 입지는 카페 창업에 매우 유리한 조건을 갖추고 있습니다.",
     "addressName": "포항시 양덕동"
 }
@@ -156,17 +212,18 @@
 
 ---
 
-## 💬 Community Ask Controller
-- **Base URL:** `/regions/{regionId}/community`
+## **3. 💬 Community Ask API**
 
-### 1. [GET] /ask
-- **설명:** Q&A 게시판의 전체 질문 목록을 조회합니다.
-- **Path Variable:** `regionId` (Long) - 지역 ID
-- **Base URL:** `/regions`
+* **Base URL:** `/regions/{regionId}/community/ask`
 
-### 1. [GET] /
-- **설명:** Q&A 게시판의 전체 질문 목록을 조회합니다.
-- **Response Body (Success):**
+---
+
+### **3.1 질문 목록 조회**
+
+**\[GET]** `/regions/{regionId}/community/ask`
+
+**Response**
+
 ```json
 {
     "askList": [
@@ -181,16 +238,14 @@
 }
 ```
 
-### 2. [GET] /ask/{communityId}
-- **설명:** 특정 Q&A 게시글의 상세 내용을 조회합니다.
-- **Path Variables:** 
-    - `regionId` (Long) - 지역 ID
-    - `communityId` (Long) - 게시글 ID
+---
 
-### 2. [GET] /{postId}
-- **설명:** 특정 Q&A 게시글의 상세 내용을 조회합니다.
-- **Path Variable:** `postId` (Long) - 게시글 ID
-- **Response Body (Success):**
+### **3.2 질문 상세 조회**
+
+**\[GET]** `/regions/{regionId}/community/ask/{postId}`
+
+**Response**
+
 ```json
 {
     "id": 1,
@@ -209,40 +264,23 @@
 }
 ```
 
-### 3. [POST] /ask/write
-- **설명:** 새로운 Q&A 질문을 작성합니다. (로그인 필요)
-- **Path Variable:** `regionId` (Long) - 지역 ID
-### 3. [POST] /
-- **설명:** 새로운 Q&A 질문을 작성합니다. (로그인 필요)
-- **Request Body:**
+---
+
+### **3.3 질문 작성**
+
+**\[POST]** `/regions/{regionId}/community/ask/write`
+
+**Request**
+
 ```json
 {
     "title": "새로운 질문입니다.",
     "content": "이 지역의 임대료는 어느정도 수준인가요?"
 }
 ```
-- **Response Body (Success):**
-```json
-{
-    "isSuccess": 1
-}
-```
 
-### 4. [POST] /{communityId}/ask/comment
-- **설명:** 특정 Q&A 게시글에 댓글을 작성합니다. (로그인 필요)
-- **Path Variables:** 
-    - `regionId` (Long) - 지역 ID
-    - `communityId` (Long) - 게시글 ID
-### 4. [POST] /{postId}/comments
-- **설명:** 특정 Q&A 게시글에 댓글을 작성합니다. (로그인 필요)
-- **Path Variable:** `postId` (Long) - 게시글 ID
-- **Request Body:**
-```json
-{
-    "comment": "제가 알기로는 평당 10만원 선입니다."
-}
-```
-- **Response Body (Success):**
+**Response**
+
 ```json
 {
     "isSuccess": 1
@@ -251,13 +289,40 @@
 
 ---
 
-## 🕶️ Community Blind Controller
-- **Base URL:** `/regions/{regionId}/community/blind/reviews`
+### **3.4 댓글 작성**
 
-### 1. [POST] /
-- **설명:** 특정 지역에 대한 블라인드 리뷰를 작성합니다. (로그인 필요)
-- **Path Variable:** `regionId` (Long) - 지역 ID
-- **Request Body:**
+**\[POST]** `/regions/{regionId}/community/ask/{postId}/comments`
+
+**Request**
+
+```json
+{
+    "comment": "제가 알기로는 평당 10만원 선입니다."
+}
+```
+
+**Response**
+
+```json
+{
+    "isSuccess": 1
+}
+```
+
+---
+
+## **4. 🕶️ Community Blind API**
+
+* **Base URL:** `/regions/{regionId}/community/blind/reviews`
+
+---
+
+### **4.1 블라인드 리뷰 작성**
+
+**\[POST]** `/regions/{regionId}/community/blind/reviews`
+
+**Request**
+
 ```json
 {
     "title": "양덕동 카페거리 솔직 후기",
@@ -272,20 +337,23 @@
     }
 }
 ```
-- **Response Body (Success):**
+
+**Response**
+
 ```json
 {
     "isSuccess": 1
 }
 ```
 
-### 2. [PATCH] /{reviewId}
-- **설명:** 기존 블라인드 리뷰를 수정합니다. (로그인 및 작성자 확인 필요)
-- **Path Variables:** 
-    - `regionId` (Long) - 지역 ID
-    - `reviewId` (Long) - 리뷰 ID
-- **Path Variables:** `regionId` (Long), `reviewId` (Long)
-- **Request Body:** (수정할 필드만 포함)
+---
+
+### **4.2 블라인드 리뷰 수정**
+
+**\[PATCH]** `/regions/{regionId}/community/blind/reviews/{reviewId}`
+
+**Request**
+
 ```json
 {
     "title": "양덕동 카페거리 솔직 후기 (수정)",
@@ -299,33 +367,37 @@
     }
 }
 ```
-- **Response Body (Success):**
+
+**Response**
+
 ```json
 {
     "isSuccess": 1
 }
 ```
 
-### 3. [DELETE] /{reviewId}
-- **설명:** 블라인드 리뷰를 삭제합니다. (로그인 및 작성자 확인 필요)
-- **Path Variables:** 
-    - `regionId` (Long) - 지역 ID
-    - `reviewId` (Long) - 리뷰 ID
-- **Path Variables:** `regionId` (Long), `reviewId` (Long)
-- **Response Body (Success):**
+---
+
+### **4.3 블라인드 리뷰 삭제**
+
+**\[DELETE]** `/regions/{regionId}/community/blind/reviews/{reviewId}`
+
+**Response**
+
 ```json
 {
     "isSuccess": 1
 }
 ```
 
-### 4. [GET] /{reviewId}
-- **설명:** 특정 블라인드 리뷰의 상세 내용을 조회합니다.
-- **Path Variables:** 
-    - `regionId` (Long) - 지역 ID
-    - `reviewId` (Long) - 리뷰 ID
-- **Path Variables:** `regionId` (Long), `reviewId` (Long)
-- **Response Body (Success):**
+---
+
+### **4.4 블라인드 리뷰 상세 조회**
+
+**\[GET]** `/regions/{regionId}/community/blind/reviews/{reviewId}`
+
+**Response**
+
 ```json
 {
     "totalRate": 4.25,
@@ -345,11 +417,14 @@
 }
 ```
 
-### 5. [GET] /
-- **설명:** 특정 지역의 모든 블라인드 리뷰 요약 목록을 조회합니다.
-- **Path Variable:** `regionId` (Long) - 지역 ID
-- **Path Variable:** `regionId` (Long)
-- **Response Body (Success):**
+---
+
+### **4.5 블라인드 리뷰 목록 조회**
+
+**\[GET]** `/regions/{regionId}/community/blind/reviews`
+
+**Response**
+
 ```json
 {
     "totalRate": 4.3,
@@ -378,12 +453,18 @@
 
 ---
 
-## 👤 My Page Controller
-- **Base URL:** `/api/me`
+## **5. 👤 My Page API**
 
-### 1. [GET] /
-- **설명:** 현재 로그인된 사용자의 마이페이지 정보를 조회합니다. (로그인 필요)
-- **Response Body (Success):**
+* **Base URL:** `/api/me`
+
+---
+
+### **5.1 마이페이지 조회**
+
+**\[GET]** `/api/me`
+
+**Response**
+
 ```json
 {
     "email": "example@email.com",
@@ -427,3 +508,10 @@
         "date": "2024.08.20"
     }
 }
+```
+
+---
+
+✅ 이 버전을 **Swagger YAML**, **Postman JSON**, **Notion 스타일** 중 어떤 형식으로도 변환 가능해요.
+👉 **어느 형태로 더 추가해줄까요?** (예: Swagger로 API 문서화, Postman Import용 JSON, Notion 스타일 문서)
+****
