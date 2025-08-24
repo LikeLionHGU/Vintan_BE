@@ -16,13 +16,13 @@
 
 ## **1. 👤 User API**
 
-* **Base URL:** `/auth`
+* **Base URL:** `/auth/login`
 
 ---
 
 ### **1.1 회원가입**
 
-**\[POST]** `/auth/register`
+**\[POST]** `/auth/login/register`
 **설명:** 신규 유저를 등록합니다.
 
 **Request**
@@ -49,7 +49,7 @@
 
 ### **1.2 아이디 중복 확인**
 
-**\[GET]** `/auth/duplicate/{userId}`
+**\[GET]** `/auth/login/duplicate/{userId}`
 **설명:** 사용자 ID의 중복 여부 확인
 
 **Response**
@@ -64,7 +64,7 @@
 
 ### **1.3 로그인**
 
-**\[POST]** `/auth/login`
+**\[POST]** `/auth/login/login`
 **설명:** 사용자 로그인 및 세션 생성
 
 **Request**
@@ -88,7 +88,7 @@
 
 ### **1.4 로그아웃**
 
-**\[POST]** `/auth/logout`
+**\[POST]** `/auth/login/logout`
 **설명:** 세션 무효화
 
 **Response**
@@ -103,7 +103,7 @@
 
 ### **1.5 세션 확인**
 
-**\[GET]** `/auth/session`
+**\[GET]** `/auth/login/session`
 **설명:** 로그인 여부 및 사업자 여부 확인
 
 **Response**
