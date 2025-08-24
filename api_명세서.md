@@ -467,51 +467,53 @@
 
 ```json
 {
-    "email": "example@email.com",
-    "id": "exampleUser",
-    "blind": {
-        "id": 10,
-        "totalRate": 4.0,
-        "title": "내가 쓴 블라인드 리뷰",
-        "address": "포항시 남구",
-        "date": "2024.08.15",
-        "categoryRate": {
-            "cleanness": 4,
-            "people": 4,
-            "reach": 4,
-            "rentFee": 4
-        },
-        "positive": "장점입니다.",
-        "negative": "단점입니다."
+  "email": "example@email.com",
+  "id": "exampleUser",
+  "blind": {
+    "id": 10,
+    "totalRate": 4.0,
+    "title": "내가 쓴 블라인드 리뷰",
+    "address": "포항시 남구",
+    "date": "2025.08.15",
+    "categoryRate": {
+      "cleanness": 4,
+      "people": 4,
+      "reach": 4,
+      "rentFee": 4
     },
-    "ask": [
-        {
-            "id": "exampleUser",
-            "title": "내가 쓴 Q&A 질문 1",
-            "countComment": 2,
-            "date": "2024.08.16"
-        },
-        {
-            "id": "exampleUser",
-            "title": "내가 쓴 Q&A 질문 2",
-            "countComment": 0,
-            "date": "2024.08.17"
-        }
-    ],
-    "name": "김민준",
-    "point": 500,
-    "businessNumber": 1234567890,
-    "aiReport": {
-        "id": "exampleUser",
-        "address": "포항시 북구 장량로 20",
-        "reportCount": 3,
-        "date": "2024.08.20"
+    "positive": "장점입니다.",
+    "negative": "단점입니다."
+  },
+  "ask": [
+    {
+      "id": "exampleUser",
+      "title": "내가 쓴 Q&A 질문 1",
+      "countComment": 2,
+      "date": "2025.08.16"
+    },
+    {
+      "id": "exampleUser",
+      "title": "내가 쓴 Q&A 질문 2",
+      "countComment": 0,
+      "date": "2025.08.17"
     }
+  ],
+  "name": "김민준",
+  "point": 500,
+  "businessNumber": 1234567890,
+  "aiReport": [
+    {
+      "id": "1",
+      "address": "포항시 북구 장량로 20",
+      "reportCount": 3,
+      "date": "2025.08.20"
+    },
+    {
+      "id": "3",
+      "address": "포항시 남구 지곡로 50",
+      "reportCount": 3,
+      "date": "2025.07.11"
+    }
+  ]
 }
 ```
-
----
-
-✅ 이 버전을 **Swagger YAML**, **Postman JSON**, **Notion 스타일** 중 어떤 형식으로도 변환 가능해요.
-👉 **어느 형태로 더 추가해줄까요?** (예: Swagger로 API 문서화, Postman Import용 JSON, Notion 스타일 문서)
-****
