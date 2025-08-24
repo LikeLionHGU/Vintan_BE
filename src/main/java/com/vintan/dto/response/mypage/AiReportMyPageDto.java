@@ -19,4 +19,6 @@ public class AiReportMyPageDto {
     private Integer reportCount; // Number of reports
 
     private String date;         // Report creation date (formatted as yyyy.MM.dd)
+
+    private String category;
 }

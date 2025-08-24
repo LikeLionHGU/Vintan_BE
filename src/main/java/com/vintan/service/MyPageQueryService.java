@@ -56,6 +56,7 @@ public class MyPageQueryService {
                         .id(report.getId())
                         .address(report.getAddress())
                         .reportCount((int) reportCount)
+                        .category(report.getCategory())
                         .date(report.getRegDate() != null ? report.getRegDate().format(FMT) : null)
                         .build())
                 .toList();

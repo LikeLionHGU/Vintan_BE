@@ -511,12 +511,14 @@
       "id": "1",
       "address": "포항시 북구 장량로 20",
       "reportCount": 3,
+      "category" : "카페",
       "date": "2025.08.20"
     },
     {
       "id": "3",
       "address": "포항시 남구 지곡로 50",
       "reportCount": 3,
+      "category" : "카페",
       "date": "2025.07.11"
     }
   ]
