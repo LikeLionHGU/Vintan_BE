@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,13 +49,16 @@ public class MyPageQueryService {
 
         // Build AI Report section: latest report + total count
         long reportCount = reportRepository.countByUser_Id(user.getId());
-        Report latestReport = reportRepository.findTop1ByUser_IdOrderByRegDateDesc(user.getId());
-        AiReportMyPageDto aiReport = (latestReport == null) ? null : AiReportMyPageDto.builder()
-                .id(user.getId())
-                .address(latestReport.getAddress())
-                .reportCount((int) reportCount)
-                .date(latestReport.getRegDate() != null ? latestReport.getRegDate().format(FMT) : null)
-                .build();
+        List<Report> latestReport = reportRepository.findByUser_IdOrderByRegDateDesc(user.getId());
+
+        List<AiReportMyPageDto> aiReportList = latestReport.stream()
+                .map(report -> AiReportMyPageDto.builder()
+                        .id(report.getId())
+                        .address(report.getAddress())
+                        .reportCount((int) reportCount)
+                        .date(report.getRegDate() != null ? report.getRegDate().format(FMT) : null)
+                        .build())
+                .toList();
 
         // Build final response
         return MyPageResponse.builder()
@@ -65,7 +69,7 @@ public class MyPageQueryService {
                 .name(user.getName())
                 .point(user.getPoint())
                 .businessNumber(user.getBusinessNumber())
-                .aiReport(aiReport)
+                .aiReport(aiReportList)
                 .build();
     }
 

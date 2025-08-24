@@ -12,7 +12,7 @@ import lombok.*;
 @Builder
 public class AiReportMyPageDto {
 
-    private String id;           // User ID
+    private Long id;           // Report ID
 
     private String address;      // Location (address from the latest report)
 

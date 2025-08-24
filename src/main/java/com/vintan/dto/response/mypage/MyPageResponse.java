@@ -23,5 +23,5 @@ public class MyPageResponse {
     private BlindMyPageDto blind;             // Latest blind community post by the user (nullable)
     private List<AskMyPageDto> ask;           // Up to 3 recent QnA posts by the user
 
-    private AiReportMyPageDto aiReport;       // AI-generated report summary (nullable)
+    private List<AiReportMyPageDto> aiReport;       // AI-generated report summary (nullable)
 }
