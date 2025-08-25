@@ -76,7 +76,7 @@ public class UserController {
             return ResponseEntity.ok(new UserLoginResponseDto(1));
         } catch (IllegalArgumentException e) {
             // Return 400 Bad Request if login fails
-            return ResponseEntity.badRequest().body(new UserLoginResponseDto(0));
+            return ResponseEntity.ok(new UserLoginResponseDto(0));
         }
     }
 
