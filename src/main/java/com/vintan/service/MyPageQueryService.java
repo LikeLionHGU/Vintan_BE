@@ -45,6 +45,7 @@ public class MyPageQueryService {
                         .title(p.getTitle())
                         .countComment(qnaPostRepository.countComments(p.getPostId()))
                         .date(p.getCreatedAt() != null ? p.getCreatedAt().format(FMT) : null)
+                        .regionId(p.getRegionId())
                         .build())
                 .toList();
 

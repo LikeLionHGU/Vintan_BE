@@ -21,4 +21,6 @@ public class AskMyPageDto {
     private Integer countComment; // Number of comments
 
     private String date;          // Post creation date (formatted as yyyy.MM.dd)
+
+    private Long regionId;
 }
