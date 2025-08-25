@@ -91,7 +91,7 @@ public class ReportService {
         String floatingPopulationAnalysisJson = geminiApiClient.generatefloatingPopulationAnalysisJson(address);
 
         // 3-5. Overall review analysis
-        GeneralOverviewGeminiDto generalOverviewGeminiDto = geminiApiClient.generateOverallReview(regionId);
+        GeneralOverviewGeminiDto generalOverviewGeminiDto = geminiApiClient.generateOverallReview(posts);
         String generalOverviewJson = generalOverviewGeminiDto.getOutput();
         CommunityAllReviewResponseDto communityAllReviewResponseDto = generalOverviewGeminiDto.getCommunityAllReviewResponseDto();
         int postReportCount = generalOverviewGeminiDto.getPostCount();

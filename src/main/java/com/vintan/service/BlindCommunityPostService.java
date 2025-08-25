@@ -98,13 +98,23 @@ public class BlindCommunityPostService {
         return new CommunityDetailResponseDto(totalRate, blindDetailDto);
     }
 
+    public List<CommunityBlindDetailResponseDto> getPostsByRegion(Long regionId) {
+        List<BlindCommunityPost> posts = blindCommunityPostRepository.findByRegionNo(regionId);
+
+        return posts.stream()
+                .map(CommunityBlindDetailResponseDto::new)
+                .toList(); // Java 16 이상
+    }
+
     /**
      * Retrieve all posts for a given region along with average ratings.
      */
     public CommunityAllReviewResponseDto getAllPost(Long regionId) {
         List<BlindCommunityPost> posts = blindCommunityPostRepository.findByRegionNo(regionId);
+        return processPostsForReview(posts);
+    }
 
-
+    public CommunityAllReviewResponseDto processPostsForReview(List<BlindCommunityPost> posts) {
         if (posts.isEmpty()) {
             return new CommunityAllReviewResponseDto(0.0, 0.0, 0.0, 0.0, 0.0, List.of(), "");
         }

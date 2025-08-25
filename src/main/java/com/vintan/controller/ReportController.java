@@ -45,6 +45,8 @@ public class ReportController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
+        System.out.println("지금 받은 regiond Id: "+regionId);
+
         // Retrieve user information from session
         SessionUserDto sessionUser = (SessionUserDto) session.getAttribute("loggedInUser");
         String userId = sessionUser.getId();

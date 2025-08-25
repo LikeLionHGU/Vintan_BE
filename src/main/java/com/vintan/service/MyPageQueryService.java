@@ -1,5 +1,6 @@
 package com.vintan.service;
 
+import com.vintan.controller.converter.CategoryConverter;
 import com.vintan.domain.*;
 import com.vintan.dto.response.community.CategoryRateDto;
 import com.vintan.dto.response.mypage.AiReportMyPageDto;
@@ -58,7 +59,7 @@ public class MyPageQueryService {
                         .id(report.getId())
                         .address(report.getAddress())
                         .reportCount((int) reportCount)
-                        .category(report.getCategory())
+                        .category(CategoryConverter.getKoreanName(report.getCategory()))
                         .date(report.getRegDate() != null ? report.getRegDate().format(FMT) : null)
                         .build())
                 .toList();

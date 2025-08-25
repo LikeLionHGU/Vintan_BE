@@ -3,10 +3,13 @@ package com.vintan.component.gemini;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vintan.domain.BlindCommunityPost;
+import com.vintan.domain.embedded.CategoryRate;
 import com.vintan.dto.request.ai.kakao.CompanyDto;
 import com.vintan.dto.response.ai.GeneralOverviewGeminiDto;
 import com.vintan.dto.response.ai.KakaoPlaceDto;
 import com.vintan.dto.response.community.CommunityAllReviewResponseDto;
+import com.vintan.dto.response.community.CommunityBlindDetailResponseDto;
 import com.vintan.service.BlindCommunityPostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * GeminiApiClient is responsible for interacting with Google's Gemini API
@@ -73,12 +77,12 @@ public class GeminiApiClient {
     public String generateAccessibilityAnalysis(String address, List<String> landmarks, List<String> stations, List<String> busRoutes) {
         String prompt = String.format(
                 "너는 상권 분석 전문가야. 아래 데이터를 바탕으로 '접근성 및 주변 시설 분석' 보고서를 작성해줘.\n\n" +
-                        "[입력 데이터]\n" +
-                        "- 분석 주소: %s\n" +
-                        "- 주변 주요 랜드마크 (반경 1km): %s\n" +
-                        "- 주변 지하철/기차역 (반경 1km): %s\n" +
-                        "- 주변 버스 노선: %s\n\n" +
-                        "[요청 사항]\n" +
+//                        "[입력 데이터]\n" +
+//                        "- 분석 주소: %s\n" +
+//                        "- 주변 주요 랜드마크 (반경 1km): %s\n" +
+//                        "- 주변 지하철/기차역 (반경 1km): %s\n" +
+//                        "- 주변 버스 노선: %s\n\n" +
+//                        "[요청 사항]\n" +
                         "1. landmark: 수집된 랜드마크 정보를 바탕으로 이 지역의 상권 특징을 분석해줘. (데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
                         "2. parking: 이 지역에 해당하는 주차 환경은 어떤 것 같은지 분석해줘\n" +
                         "3. publicTransport: 수집된 버스 노선 정보를 바탕으로 대중교통 편의성을 분석해줘.(데이터가 없으면 그냥 위치를 기반으로 해서 정보 제공해줘)\n" +
@@ -140,15 +144,51 @@ public class GeminiApiClient {
     /**
      * Generates an overview review analysis for a specific region by fetching community posts and analyzing them.
      */
-    public GeneralOverviewGeminiDto generateOverallReview(Long regionId) {
-        CommunityAllReviewResponseDto responseDto = blindCommunityPostService.getAllPost(regionId);
-        int postCount = responseDto.getBlind().size();
+    public GeneralOverviewGeminiDto generateOverallReview(List<BlindCommunityPost> posts) {
+        CommunityAllReviewResponseDto responseDto = blindCommunityPostService.processPostsForReview(posts);
 
+        if (posts == null || posts.isEmpty()) {
+            String defaultJson = "{\n" +
+                    "  \"review_summary\": \"작성된 커뮤니티 글이 없어 분석할 수 없습니다.\",\n" +
+                    "  \"positive\": \"정보 없음\",\n" +
+                    "  \"negative\": \"정보 없음\",\n" +
+                    "  \"review_score\": 0\n" +
+                    "}";
+            System.out.println(defaultJson);
+            return new GeneralOverviewGeminiDto(defaultJson, responseDto, 0);
+        }
+
+        int postCount = posts.size();
         try {
-            // Convert responseDto to JSON string for inclusion in prompt
-            String communityDataAsJson = objectMapper.writeValueAsString(responseDto);
+            String resultString = posts.stream()
+                    .map(post -> {
+                        // CategoryRate null-safe 처리
+                        CategoryRate rate = post.getCategoryRate();
+                        String positive = post.getPositive() != null ? post.getPositive() : "정보가 없습니다";
+                        String negative = post.getNegative() != null ? post.getNegative() : "정보가 없습니다";
 
-            // Build the prompt for Gemini
+                        int cleanness = rate != null && rate.getCleanness() != null ? rate.getCleanness() : 0;
+                        int people = rate != null && rate.getPeople() != null ? rate.getPeople() : 0;
+                        int reach = rate != null && rate.getReach() != null ? rate.getReach() : 0;
+                        int rentFee = rate != null && rate.getRentFee() != null ? rate.getRentFee() : 0;
+
+                        return String.format(
+                                "게시물 ID: %d\n제목: %s\n긍정적 피드백: %s\n부정적 피드백: %s\n" +
+                                        "--- 평가 점수 ---\n청결도: %d\n유동인구: %d\n접근성: %d\n임대료: %d",
+                                post.getId(),
+                                post.getTitle() != null ? post.getTitle() : "정보가 없습니다",
+                                positive,
+                                negative,
+                                cleanness,
+                                people,
+                                reach,
+                                rentFee
+                        );
+                    })
+                    .collect(Collectors.joining("\n====================\n"));
+
+            System.out.println(resultString);
+
             String prompt = String.format(
                     "너는 상권 분석 전문가야. 아래 데이터를 바탕으로 '전체 적인 커뮤니티' 보고서를 작성해줘.\n\n" +
                             "[입력 데이터]\n" +
@@ -167,14 +207,27 @@ public class GeminiApiClient {
                             "  \"review_score\": 25점_만점의_점수\n" +
                             "}\n" +
                             "```",
-                    communityDataAsJson
+                    resultString
             );
+
             String geminiOutput = callGeminiApi(prompt, "접근성 분석 생성에 실패했습니다.");
             return new GeneralOverviewGeminiDto(geminiOutput, responseDto, postCount);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("커뮤니티 데이터 JSON 변환에 실패했습니다.", e);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            // 2. [수정] 예외 발생 시에도 기본 JSON 응답을 반환합니다.
+            String errorJson = "{\n" +
+                    "  \"review_summary\": \"데이터를 분석하는 중 오류가 발생했습니다.\",\n" +
+                    "  \"positive\": \"정보 없음\",\n" +
+                    "  \"negative\": \"정보 없음\",\n" +
+                    "  \"review_score\": 0\n" +
+                    "}";
+            System.out.println(errorJson);
+            return new GeneralOverviewGeminiDto(errorJson, responseDto, postCount);
         }
     }
+
+
 
     /**
      * Generates a final comprehensive business report combining all analyses and scores.
